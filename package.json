@@ -1,0 +1,21 @@
+{
+  "name": "open-ai-codex-platform-test",
+  "version": "1.0.0",
+  "description": "OpenAI Codex Platform Test Project",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --coverage --ci --reporters=default --reporters=jest-junit",
+    "lint": "eslint src tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "eslint": "^8.56.0"
+  }
+}
