@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brief Writer 2026</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="logo">BW</div>
+        <div>
+          <h1>Brief Writer <span class="year">2026</span></h1>
+          <p class="subtitle">Multi-Agent Creative Brief Generator</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-nvidia">NVIDIA NIM</span>
+        <span class="badge badge-ipa">IPA Standard</span>
+        <span class="badge badge-cannes">Cannes RAG</span>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Input Form -->
+      <section id="form-section" class="card form-card">
+        <h2>Create a Creative Brief</h2>
+        <p class="form-description">Enter your brand details and campaign goal. Our 5 AI agents will collaborate to produce an IPA-standard creative brief, benchmarked against Cannes Lions award-winning work.</p>
+
+        <form id="brief-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="brand">Product or Brand *</label>
+              <input type="text" id="brand" placeholder="e.g. Oatly, Nike, your brand..." required>
+            </div>
+            <div class="form-group">
+              <label for="industry">Industry</label>
+              <input type="text" id="industry" placeholder="e.g. Food & Beverage, Tech...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="goal">Campaign Goal *</label>
+            <input type="text" id="goal" placeholder="e.g. Win over coffee drinkers who have never tried oat milk" required>
+          </div>
+          <div class="form-group">
+            <label for="context">Additional Context</label>
+            <textarea id="context" rows="3" placeholder="Any extra details: target market, budget, timing constraints..."></textarea>
+          </div>
+          <button type="submit" id="submit-btn" class="btn btn-primary">
+            <span class="btn-text">Generate Creative Brief</span>
+            <span class="btn-icon">&#10132;</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Agent Pipeline -->
+      <section id="pipeline-section" class="pipeline-section" style="display:none;">
+        <h2>Agent Pipeline</h2>
+        <div class="pipeline">
+          <div class="agent-card" id="agent-rag">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 0</span>
+            </div>
+            <div class="agent-info">
+              <h3>RAG Knowledge Base</h3>
+              <p class="agent-desc">Loading Cannes Lions award-winning insights...</p>
+            </div>
+          </div>
+          <div class="pipeline-connector"></div>
+          <div class="agent-card" id="agent-research">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 1</span>
+            </div>
+            <div class="agent-info">
+              <h3>Research Agent</h3>
+              <p class="agent-desc">Market landscape, competitors, audience, cultural tensions</p>
+              <span class="agent-principle">IPA: Start with strategy, not tactics</span>
+            </div>
+          </div>
+          <div class="pipeline-connector"></div>
+          <div class="agent-card" id="agent-strategy">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 2</span>
+            </div>
+            <div class="agent-info">
+              <h3>Strategy Agent</h3>
+              <p class="agent-desc">Objective, insight, single-minded proposition, desired response</p>
+              <span class="agent-principle">IPA: Single-minded. Not a shopping list.</span>
+            </div>
+          </div>
+          <div class="pipeline-connector"></div>
+          <div class="agent-card" id="agent-creative">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 3</span>
+            </div>
+            <div class="agent-info">
+              <h3>Creative Director Agent</h3>
+              <p class="agent-desc">Big idea, tone, taglines, visual direction, channels</p>
+              <span class="agent-principle">IPA: Emotion over information. Aim for fame.</span>
+            </div>
+          </div>
+          <div class="pipeline-connector"></div>
+          <div class="agent-card" id="agent-compiler">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 4</span>
+            </div>
+            <div class="agent-info">
+              <h3>Brief Compiler Agent</h3>
+              <p class="agent-desc">Assembles IPA-standard 19-section creative brief</p>
+              <span class="agent-principle">IPA: Clear, concise, jargon-free</span>
+            </div>
+          </div>
+          <div class="pipeline-connector"></div>
+          <div class="agent-card" id="agent-review">
+            <div class="agent-status">
+              <div class="status-dot"></div>
+              <span class="agent-step">STEP 5</span>
+            </div>
+            <div class="agent-info">
+              <h3>Review Agent</h3>
+              <p class="agent-desc">Scores against 8 IPA criteria, produces revised brief</p>
+              <span class="agent-principle">IPA: Effectiveness benchmarking</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section id="results-section" style="display:none;">
+        <div class="results-tabs">
+          <button class="tab active" data-tab="review">Final Brief</button>
+          <button class="tab" data-tab="research">Research</button>
+          <button class="tab" data-tab="strategy">Strategy</button>
+          <button class="tab" data-tab="creative">Creative</button>
+          <button class="tab" data-tab="compiler">Compiled</button>
+        </div>
+        <div class="results-content">
+          <div class="tab-panel active" id="panel-review"><div class="markdown-body"></div></div>
+          <div class="tab-panel" id="panel-research"><div class="markdown-body"></div></div>
+          <div class="tab-panel" id="panel-strategy"><div class="markdown-body"></div></div>
+          <div class="tab-panel" id="panel-creative"><div class="markdown-body"></div></div>
+          <div class="tab-panel" id="panel-compiler"><div class="markdown-body"></div></div>
+        </div>
+      </section>
+
+      <!-- Error -->
+      <div id="error-banner" class="error-banner" style="display:none;"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Powered by NVIDIA NIM (Kimi K2.5) &middot; IPA/BetterBriefs Framework &middot; Cannes Lions RAG Knowledge Base</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

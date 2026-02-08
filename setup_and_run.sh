@@ -67,9 +67,33 @@ fi
 
 echo ""
 echo "=========================================="
-echo "  Ready! Launching Brief Writer..."
+echo "  Ready! How would you like to run it?"
 echo "=========================================="
 echo ""
+echo "  1) Web UI    - Modern browser interface (recommended)"
+echo "  2) Terminal   - Command-line interactive mode"
+echo ""
+read -p "Enter 1 or 2 (default: 1): " choice
 
-# Run
-python main.py
+case "$choice" in
+    2)
+        echo ""
+        echo "Launching terminal mode..."
+        echo ""
+        python main.py
+        ;;
+    *)
+        echo ""
+        echo "Starting web server..."
+        echo ""
+        echo "=========================================="
+        echo "  Open your browser to:"
+        echo ""
+        echo "    http://localhost:5000"
+        echo ""
+        echo "  Press Ctrl+C to stop the server."
+        echo "=========================================="
+        echo ""
+        python web.py
+        ;;
+esac
