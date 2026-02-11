@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Classification — AI Comply</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">AC</div>
+      <div class="sidebar-brand-text">AI Comply<span>EU AI Act Platform</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Overview</div>
+        <a class="sidebar-link" href="../index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+        <a class="sidebar-link" href="assessment.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Compliance Assessment</a>
+        <a class="sidebar-link active" href="risk.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Risk Classification</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Management</div>
+        <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documentation</a>
+        <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>AI Systems Registry</a>
+        <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Team &amp; Roles</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Reports</div>
+        <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+        <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Reports</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">JD</div>
+        <div class="sidebar-user-info">Jane Doe<span>Compliance Officer</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button class="top-bar-btn" id="menuToggle" aria-label="Toggle menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <nav class="breadcrumb">
+          <a href="../index.html">AI Comply</a>
+          <span class="separator">/</span>
+          <span class="current">Risk Classification</span>
+        </nav>
+      </div>
+      <div class="top-bar-right">
+        <button class="top-bar-btn" aria-label="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <button class="top-bar-btn" aria-label="Notifications"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notification-dot"></span></button>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <div class="page-header">
+        <h1 class="heading-2">EU AI Act Risk Classification</h1>
+        <p>Understand how the EU AI Act categorises AI systems by risk level and what obligations apply to each tier.</p>
+      </div>
+
+      <!-- Risk Pyramid Visual -->
+      <div class="card" style="margin-bottom: var(--space-8);">
+        <div class="card-header">
+          <h3>Risk Pyramid Overview</h3>
+          <span class="text-sm text-muted">Hover each level for details</span>
+        </div>
+        <div class="card-body">
+          <div class="risk-pyramid">
+            <div class="risk-level risk-level-1">
+              Unacceptable Risk
+              <div class="risk-tooltip">
+                <strong>PROHIBITED</strong><br>
+                Social scoring by governments, real-time biometric ID in public spaces (with exceptions), manipulative AI exploiting vulnerabilities.
+              </div>
+            </div>
+            <div class="risk-level risk-level-2">
+              High Risk
+              <div class="risk-tooltip">
+                <strong>STRICTLY REGULATED</strong><br>
+                AI in HR, credit scoring, education, law enforcement, critical infrastructure, migration. Must comply with Arts. 9-15.
+              </div>
+            </div>
+            <div class="risk-level risk-level-3">
+              Limited Risk
+              <div class="risk-tooltip">
+                <strong>TRANSPARENCY OBLIGATIONS</strong><br>
+                Chatbots, emotion recognition, deepfakes. Users must be informed they are interacting with AI or viewing AI-generated content.
+              </div>
+            </div>
+            <div class="risk-level risk-level-4">
+              Minimal Risk
+              <div class="risk-tooltip">
+                <strong>NO SPECIFIC OBLIGATIONS</strong><br>
+                Spam filters, AI-enabled games, inventory management. May voluntarily adopt codes of conduct.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Breakdown Tabs -->
+      <div class="card" style="margin-bottom: var(--space-8);">
+        <div class="card-body">
+          <div class="tabs">
+            <div class="tab active" data-tab="unacceptable">Unacceptable</div>
+            <div class="tab" data-tab="high">High Risk</div>
+            <div class="tab" data-tab="limited">Limited</div>
+            <div class="tab" data-tab="minimal">Minimal</div>
+          </div>
+
+          <!-- Unacceptable Tab -->
+          <div class="tab-content active" id="tab-unacceptable">
+            <div class="alert alert-danger">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <div>
+                <strong>These AI practices are banned under Article 5</strong>
+                Violation carries fines up to EUR 35 million or 7% of global annual turnover.
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+              <div style="padding:var(--space-4);background:var(--color-danger-light);border-radius:var(--radius-md);">
+                <strong style="font-size:var(--text-sm);">Social Scoring</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">Government use of AI for social scoring based on social behaviour or personal characteristics.</p>
+              </div>
+              <div style="padding:var(--space-4);background:var(--color-danger-light);border-radius:var(--radius-md);">
+                <strong style="font-size:var(--text-sm);">Manipulative AI</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">AI that deploys subliminal or manipulative techniques to distort behaviour, causing harm.</p>
+              </div>
+              <div style="padding:var(--space-4);background:var(--color-danger-light);border-radius:var(--radius-md);">
+                <strong style="font-size:var(--text-sm);">Real-time Biometric ID</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">Real-time remote biometric identification in publicly accessible spaces for law enforcement (limited exceptions).</p>
+              </div>
+              <div style="padding:var(--space-4);background:var(--color-danger-light);border-radius:var(--radius-md);">
+                <strong style="font-size:var(--text-sm);">Exploitation of Vulnerabilities</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">AI exploiting age, disability, or socio-economic vulnerabilities to materially distort behaviour.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- High Risk Tab -->
+          <div class="tab-content" id="tab-high">
+            <p class="text-muted" style="margin-bottom:var(--space-4);">High-risk AI systems are listed in <strong>Annex III</strong> of the EU AI Act. These carry the most extensive compliance obligations.</p>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Examples</th>
+                    <th>Key Articles</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Biometrics</strong></td>
+                    <td class="text-sm">Remote biometric identification (non real-time), emotion recognition in workplace</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Critical Infrastructure</strong></td>
+                    <td class="text-sm">AI managing road traffic, water, gas, electricity supply</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Education</strong></td>
+                    <td class="text-sm">AI determining access to education, evaluating learning outcomes</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Employment &amp; HR</strong></td>
+                    <td class="text-sm">CV screening, interview evaluation, performance monitoring, promotion decisions</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Essential Services</strong></td>
+                    <td class="text-sm">Credit scoring, insurance pricing, emergency services dispatch</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Law Enforcement</strong></td>
+                    <td class="text-sm">Polygraph tools, evidence reliability assessment, crime prediction</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Migration &amp; Border</strong></td>
+                    <td class="text-sm">Automated visa processing, risk assessment of travellers</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Justice &amp; Democracy</strong></td>
+                    <td class="text-sm">AI assisting judicial decisions, influencing election outcomes</td>
+                    <td><span class="badge badge-info">Arts. 9-15</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Limited Tab -->
+          <div class="tab-content" id="tab-limited">
+            <div class="alert alert-info">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <div>
+                <strong>Transparency is the key obligation</strong>
+                Users must be clearly informed when they are interacting with an AI system or viewing AI-generated content.
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+              <div style="padding:var(--space-5);border:1px solid var(--color-gray-200);border-radius:var(--radius-md);text-align:center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="1.5" style="margin:0 auto var(--space-3);"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <strong style="font-size:var(--text-sm);">Chatbots</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">Must inform users they are interacting with an AI</p>
+              </div>
+              <div style="padding:var(--space-5);border:1px solid var(--color-gray-200);border-radius:var(--radius-md);text-align:center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="1.5" style="margin:0 auto var(--space-3);"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                <strong style="font-size:var(--text-sm);">Emotion Recognition</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">Must disclose use of emotion or biometric categorisation</p>
+              </div>
+              <div style="padding:var(--space-5);border:1px solid var(--color-gray-200);border-radius:var(--radius-md);text-align:center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="1.5" style="margin:0 auto var(--space-3);"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                <strong style="font-size:var(--text-sm);">Deepfakes / Synthetic Media</strong>
+                <p class="text-xs text-muted" style="margin-top:4px;">Must label AI-generated or manipulated content</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Minimal Tab -->
+          <div class="tab-content" id="tab-minimal">
+            <div class="alert alert-success">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <strong>No mandatory obligations</strong>
+                Minimal-risk AI systems can be developed and used freely. Voluntary codes of conduct are encouraged.
+              </div>
+            </div>
+            <p class="text-muted" style="margin-bottom:var(--space-4);">Examples of minimal-risk AI systems include:</p>
+            <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);">
+              <span class="badge badge-neutral">Spam Filters</span>
+              <span class="badge badge-neutral">Inventory Management</span>
+              <span class="badge badge-neutral">AI-enabled Games</span>
+              <span class="badge badge-neutral">Search Optimisation</span>
+              <span class="badge badge-neutral">Recommendation Engines</span>
+              <span class="badge badge-neutral">Spell Checkers</span>
+              <span class="badge badge-neutral">Manufacturing QA</span>
+              <span class="badge badge-neutral">Predictive Maintenance</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your Systems by Risk -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Your AI Systems by Risk Level</h3>
+          <button class="btn btn-sm btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Classify New System
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="grid-3" style="gap: var(--space-5);">
+
+            <!-- High Risk -->
+            <div style="border:2px solid var(--risk-high); border-radius:var(--radius-lg); overflow:hidden;">
+              <div style="background:var(--risk-high); color:#fff; padding:var(--space-3) var(--space-4);">
+                <strong>High Risk</strong>
+                <span style="float:right;font-size:var(--text-sm);opacity:0.9;">2 systems</span>
+              </div>
+              <div style="padding:var(--space-4);">
+                <div style="padding:var(--space-3) 0; border-bottom:1px solid var(--color-gray-100);">
+                  <strong class="text-sm">HR Screening Tool</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill orange" style="width:55%;"></div></div>
+                    <span class="text-xs">55%</span>
+                  </div>
+                </div>
+                <div style="padding:var(--space-3) 0;">
+                  <strong class="text-sm">Loan Approval Model</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill red" style="width:35%;"></div></div>
+                    <span class="text-xs">35%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Limited Risk -->
+            <div style="border:2px solid var(--risk-limited); border-radius:var(--radius-lg); overflow:hidden;">
+              <div style="background:var(--risk-limited); color:var(--color-gray-800); padding:var(--space-3) var(--space-4);">
+                <strong>Limited Risk</strong>
+                <span style="float:right;font-size:var(--text-sm);opacity:0.8;">2 systems</span>
+              </div>
+              <div style="padding:var(--space-4);">
+                <div style="padding:var(--space-3) 0; border-bottom:1px solid var(--color-gray-100);">
+                  <strong class="text-sm">Customer Chatbot</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill green" style="width:92%;"></div></div>
+                    <span class="text-xs">92%</span>
+                  </div>
+                </div>
+                <div style="padding:var(--space-3) 0;">
+                  <strong class="text-sm">Fraud Detection Engine</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill blue" style="width:70%;"></div></div>
+                    <span class="text-xs">70%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimal Risk -->
+            <div style="border:2px solid var(--risk-minimal); border-radius:var(--radius-lg); overflow:hidden;">
+              <div style="background:var(--risk-minimal); color:#fff; padding:var(--space-3) var(--space-4);">
+                <strong>Minimal Risk</strong>
+                <span style="float:right;font-size:var(--text-sm);opacity:0.9;">2 systems</span>
+              </div>
+              <div style="padding:var(--space-4);">
+                <div style="padding:var(--space-3) 0; border-bottom:1px solid var(--color-gray-100);">
+                  <strong class="text-sm">Inventory Forecaster</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill green" style="width:100%;"></div></div>
+                    <span class="text-xs">100%</span>
+                  </div>
+                </div>
+                <div style="padding:var(--space-3) 0;">
+                  <strong class="text-sm">Email Spam Filter</strong>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <div class="progress-bar" style="flex:1;"><div class="progress-fill green" style="width:100%;"></div></div>
+                    <span class="text-xs">100%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+</body>
+</html>
