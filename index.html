@@ -44,20 +44,17 @@
 
       <div class="sidebar-section">
         <div class="sidebar-section-label">Management</div>
-        <a class="sidebar-link sidebar-link--disabled" href="#">
+        <a class="sidebar-link" href="pages/documentation.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           Documentation
-          <span class="coming-soon-pill">Soon</span>
         </a>
-        <a class="sidebar-link sidebar-link--disabled" href="#">
+        <a class="sidebar-link" href="pages/systems.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           AI Systems Registry
-          <span class="coming-soon-pill">Soon</span>
         </a>
-        <a class="sidebar-link sidebar-link--disabled" href="#">
+        <a class="sidebar-link" href="pages/team.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           Team &amp; Roles
-          <span class="coming-soon-pill">Soon</span>
         </a>
       </div>
 
@@ -67,10 +64,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           AI Test 1
         </a>
-        <a class="sidebar-link sidebar-link--disabled" href="#">
+        <a class="sidebar-link" href="pages/export.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export Reports
-          <span class="coming-soon-pill">Soon</span>
         </a>
       </div>
     </nav>
@@ -102,10 +98,10 @@
         </nav>
       </div>
       <div class="top-bar-right">
-        <button class="top-bar-btn" aria-label="Search" data-action="toast" data-toast="Search functionality coming soon." data-toast-type="info">
+        <button class="top-bar-btn" aria-label="Search" data-action="modal" data-modal="search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
-        <button class="top-bar-btn" aria-label="Notifications" data-action="toast" data-toast="Notifications panel coming soon." data-toast-type="info">
+        <button class="top-bar-btn" aria-label="Notifications" data-action="modal" data-modal="notifications">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
           <span class="notification-dot"></span>
         </button>
@@ -184,7 +180,7 @@
         <div class="card">
           <div class="card-header">
             <h2 class="heading-4">Compliance Score Breakdown</h2>
-            <button class="btn btn-sm btn-secondary" data-action="toast" data-toast="Detailed score breakdown coming soon.">View Details</button>
+            <button class="btn btn-sm btn-secondary" data-action="modal" data-modal="score-breakdown">View Details</button>
           </div>
           <div class="card-body" style="text-align:center;">
             <div class="score-ring">
@@ -228,7 +224,7 @@
         <div class="card">
           <div class="card-header">
             <h2 class="heading-4">Recent Activity</h2>
-            <button class="btn btn-sm btn-secondary" data-action="toast" data-toast="Full activity log coming soon.">View All</button>
+            <button class="btn btn-sm btn-secondary" data-action="modal" data-modal="activity-log">View All</button>
           </div>
           <div class="card-body">
             <div class="activity-feed">
@@ -287,11 +283,11 @@
         <div class="card-header">
           <h2 class="heading-4">Registered AI Systems</h2>
           <div style="display:flex; gap: var(--space-3);">
-            <button class="btn btn-sm btn-secondary" data-action="toast" data-toast="Data export coming soon.">
+            <button class="btn btn-sm btn-secondary" data-action="modal" data-modal="export-csv">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export
             </button>
-            <button class="btn btn-sm btn-primary" data-action="toast" data-toast="System registration coming soon.">
+            <button class="btn btn-sm btn-primary" data-action="modal" data-modal="add-system">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add System
             </button>
@@ -310,91 +306,8 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><strong>HR Screening Tool</strong></td>
-                <td><span class="badge badge-risk-high">High Risk</span></td>
-                <td>Automated CV screening &amp; candidate ranking</td>
-                <td><span class="badge badge-warning">In Progress</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill orange" style="width:55%;"></div></div>
-                    <span class="text-sm">55%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">12 Jan 2026</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
-              <tr>
-                <td><strong>Loan Approval Model</strong></td>
-                <td><span class="badge badge-risk-high">High Risk</span></td>
-                <td>Credit risk assessment for loan applications</td>
-                <td><span class="badge badge-danger">Non-Compliant</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill red" style="width:35%;"></div></div>
-                    <span class="text-sm">35%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">28 Dec 2025</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
-              <tr>
-                <td><strong>Customer Chatbot</strong></td>
-                <td><span class="badge badge-risk-limited">Limited Risk</span></td>
-                <td>Customer service conversational agent</td>
-                <td><span class="badge badge-success">Compliant</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill green" style="width:92%;"></div></div>
-                    <span class="text-sm">92%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">5 Feb 2026</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
-              <tr>
-                <td><strong>Inventory Forecaster</strong></td>
-                <td><span class="badge badge-risk-minimal">Minimal Risk</span></td>
-                <td>Demand prediction for stock management</td>
-                <td><span class="badge badge-success">Compliant</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill green" style="width:100%;"></div></div>
-                    <span class="text-sm">100%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">1 Feb 2026</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
-              <tr>
-                <td><strong>Email Spam Filter</strong></td>
-                <td><span class="badge badge-risk-minimal">Minimal Risk</span></td>
-                <td>Automated email classification</td>
-                <td><span class="badge badge-success">Compliant</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill green" style="width:100%;"></div></div>
-                    <span class="text-sm">100%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">20 Jan 2026</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
-              <tr>
-                <td><strong>Fraud Detection Engine</strong></td>
-                <td><span class="badge badge-risk-limited">Limited Risk</span></td>
-                <td>Transaction anomaly detection</td>
-                <td><span class="badge badge-warning">In Progress</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="progress-bar" style="width:100px;"><div class="progress-fill blue" style="width:70%;"></div></div>
-                    <span class="text-sm">70%</span>
-                  </div>
-                </td>
-                <td class="text-sm text-muted">8 Feb 2026</td>
-                <td><button class="btn btn-sm btn-ghost" data-action="toast" data-toast="System detail view coming soon.">View</button></td>
-              </tr>
+            <tbody id="systemsTableBody">
+              <!-- Rendered dynamically by app.js -->
             </tbody>
           </table>
         </div>
@@ -558,6 +471,7 @@
   </div>
 </div>
 
+<script src="js/data.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
