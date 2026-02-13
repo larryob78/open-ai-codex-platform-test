@@ -1,0 +1,98 @@
+import Dexie, { type Table } from 'dexie';
+import type {
+  CompanyProfile,
+  AISystem,
+  Vendor,
+  Task,
+  Incident,
+  TrainingCompletion,
+  GeneratedDoc,
+} from '../types';
+
+class ComplianceDB extends Dexie {
+  companyProfile!: Table<CompanyProfile>;
+  aiSystems!: Table<AISystem>;
+  vendors!: Table<Vendor>;
+  tasks!: Table<Task>;
+  incidents!: Table<Incident>;
+  trainingCompletions!: Table<TrainingCompletion>;
+  generatedDocs!: Table<GeneratedDoc>;
+
+  constructor() {
+    super('aicomply');
+    this.version(1).stores({
+      companyProfile: '++id',
+      aiSystems: '++id, name, riskCategory, status',
+      vendors: '++id, name, dueDiligenceStatus',
+      tasks: '++id, status, priority, relatedSystemId',
+      incidents: '++id, status, severity, relatedSystemId',
+      trainingCompletions: '++id, moduleId, userName',
+      generatedDocs: '++id, templateType',
+    });
+  }
+}
+
+export const db = new ComplianceDB();
+
+/* ── Helpers ── */
+
+export async function getCompanyProfile(): Promise<CompanyProfile | undefined> {
+  return db.companyProfile.toCollection().first();
+}
+
+export async function saveCompanyProfile(profile: Partial<CompanyProfile>): Promise<void> {
+  const existing = await getCompanyProfile();
+  if (existing?.id) {
+    await db.companyProfile.update(existing.id, { ...profile, updatedAt: new Date().toISOString() });
+  } else {
+    await db.companyProfile.add({
+      name: '',
+      sector: '',
+      country: 'Ireland',
+      employeeCount: '',
+      dpoName: '',
+      dpoEmail: '',
+      ...profile,
+      updatedAt: new Date().toISOString(),
+    } as CompanyProfile);
+  }
+}
+
+export async function exportAllData(): Promise<string> {
+  const data = {
+    companyProfile: await db.companyProfile.toArray(),
+    aiSystems: await db.aiSystems.toArray(),
+    vendors: await db.vendors.toArray(),
+    tasks: await db.tasks.toArray(),
+    incidents: await db.incidents.toArray(),
+    trainingCompletions: await db.trainingCompletions.toArray(),
+    generatedDocs: await db.generatedDocs.toArray(),
+    exportedAt: new Date().toISOString(),
+    version: '2.0.0',
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export async function importData(json: string): Promise<void> {
+  const data = JSON.parse(json);
+  await db.transaction('rw', db.tables, async () => {
+    for (const table of db.tables) {
+      await table.clear();
+    }
+    if (data.companyProfile) await db.companyProfile.bulkAdd(data.companyProfile);
+    if (data.aiSystems) await db.aiSystems.bulkAdd(data.aiSystems);
+    if (data.vendors) await db.vendors.bulkAdd(data.vendors);
+    if (data.tasks) await db.tasks.bulkAdd(data.tasks);
+    if (data.incidents) await db.incidents.bulkAdd(data.incidents);
+    if (data.trainingCompletions) await db.trainingCompletions.bulkAdd(data.trainingCompletions);
+    if (data.generatedDocs) await db.generatedDocs.bulkAdd(data.generatedDocs);
+  });
+}
+
+export async function wipeAllData(): Promise<void> {
+  await db.transaction('rw', db.tables, async () => {
+    for (const table of db.tables) {
+      await table.clear();
+    }
+  });
+}
