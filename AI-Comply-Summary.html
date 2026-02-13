@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Comply — Platform Summary &amp; Future Roadmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-600: #4c6ef5;
+      --blue-700: #4263eb;
+      --blue-50: #eef2ff;
+      --gray-50: #f8f9fa;
+      --gray-100: #f1f3f5;
+      --gray-200: #e9ecef;
+      --gray-500: #adb5bd;
+      --gray-600: #868e96;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --green: #2f9e44;
+      --green-light: #ebfbee;
+      --orange: #e67700;
+      --orange-light: #fff9db;
+      --red: #e03131;
+      --red-light: #fff5f5;
+      --nvidia-green: #76b900;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--gray-900);
+      line-height: 1.6;
+      background: #fff;
+    }
+
+    /* ---- Cover Page ---- */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #212529 0%, #364fc7 50%, #4c6ef5 100%);
+      color: #fff;
+      text-align: center;
+      padding: 80px 60px;
+      page-break-after: always;
+    }
+    .cover-logo {
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 40px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .cover h1 {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .cover .subtitle {
+      font-size: 22px;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-bottom: 48px;
+      max-width: 600px;
+    }
+    .cover-meta {
+      display: flex;
+      gap: 40px;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .cover-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* ---- Section Pages ---- */
+    .page {
+      padding: 60px;
+      min-height: 100vh;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+
+    .section-number {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue-600);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+      line-height: 1.15;
+    }
+    .section-subtitle {
+      font-size: 17px;
+      color: var(--gray-600);
+      margin-bottom: 40px;
+      max-width: 700px;
+      line-height: 1.6;
+    }
+
+    /* ---- Cards ---- */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .card {
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 28px;
+      background: #fff;
+    }
+    .card-accent {
+      border-left: 4px solid var(--blue-600);
+    }
+    .card-accent.green { border-left-color: var(--green); }
+    .card-accent.orange { border-left-color: var(--orange); }
+    .card-accent.red { border-left-color: var(--red); }
+    .card-accent.nvidia { border-left-color: var(--nvidia-green); }
+    .card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--gray-900);
+    }
+    .card p, .card li {
+      font-size: 14px;
+      color: var(--gray-700);
+      line-height: 1.65;
+    }
+    .card ul {
+      padding-left: 18px;
+      margin-top: 8px;
+    }
+    .card ul li { margin-bottom: 4px; }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+    .card-icon.blue { background: var(--blue-50); color: var(--blue-600); }
+    .card-icon.green { background: var(--green-light); color: var(--green); }
+    .card-icon.orange { background: var(--orange-light); color: var(--orange); }
+    .card-icon.red { background: var(--red-light); color: var(--red); }
+    .card-icon.nvidia { background: #f0f7e0; color: var(--nvidia-green); }
+
+    /* ---- Stat Strip ---- */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 24px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    .stat-box .value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--blue-700);
+      line-height: 1;
+    }
+    .stat-box .label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-600);
+      margin-top: 8px;
+    }
+
+    /* ---- Problem/Solution ---- */
+    .problem-box {
+      background: var(--red-light);
+      border: 1px solid #ffc9c9;
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .problem-box h3 { color: var(--red); }
+    .solution-box {
+      background: var(--green-light);
+      border: 1px solid #b2f2bb;
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .solution-box h3 { color: var(--green); }
+    .problem-box p, .solution-box p, .problem-box li, .solution-box li {
+      font-size: 14px;
+      color: var(--gray-800);
+      line-height: 1.65;
+    }
+    .problem-box ul, .solution-box ul { padding-left: 18px; margin-top: 8px; }
+    .problem-box ul li, .solution-box ul li { margin-bottom: 4px; }
+
+    /* ---- Divider ---- */
+    .divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin: 32px 0;
+    }
+
+    /* ---- Tags ---- */
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .tag.blue { background: var(--blue-50); color: var(--blue-700); }
+    .tag.green { background: var(--green-light); color: var(--green); }
+    .tag.orange { background: var(--orange-light); color: var(--orange); }
+    .tag.nvidia { background: #f0f7e0; color: #5a8c00; }
+
+    /* ---- Flow diagram ---- */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 32px 0;
+    }
+    .flow-step {
+      text-align: center;
+      padding: 16px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--gray-200);
+      background: #fff;
+      min-width: 140px;
+    }
+    .flow-step strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .flow-step span {
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+    .flow-arrow {
+      font-size: 20px;
+      color: var(--gray-500);
+    }
+
+    /* ---- Agent architecture ---- */
+    .arch-box {
+      border: 2px solid var(--blue-600);
+      border-radius: 14px;
+      padding: 32px;
+      background: linear-gradient(135deg, var(--blue-50) 0%, #fff 100%);
+      margin: 32px 0;
+    }
+    .arch-box h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--blue-700);
+      margin-bottom: 16px;
+    }
+    .arch-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .arch-node {
+      flex: 1;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--gray-200);
+      background: #fff;
+      text-align: center;
+    }
+    .arch-node strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .arch-node span {
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+    .arch-node.highlight {
+      border-color: var(--nvidia-green);
+      background: #f8fce8;
+    }
+
+    /* ---- Footer ---- */
+    .page-footer {
+      margin-top: auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    /* ---- Numbered list ---- */
+    .numbered-list {
+      counter-reset: item;
+      list-style: none;
+      padding: 0;
+    }
+    .numbered-list li {
+      counter-increment: item;
+      padding: 12px 0 12px 48px;
+      position: relative;
+      font-size: 14px;
+      color: var(--gray-700);
+      line-height: 1.6;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .numbered-list li:last-child { border-bottom: none; }
+    .numbered-list li::before {
+      content: counter(item);
+      position: absolute;
+      left: 0;
+      top: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--blue-50);
+      color: var(--blue-700);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .numbered-list li strong { color: var(--gray-900); }
+  </style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover">
+  <div class="cover-logo">AC</div>
+  <h1>AI Comply</h1>
+  <p class="subtitle">EU AI Act Compliance Platform for SMEs — Product Summary, Market Opportunity &amp; Future Roadmap</p>
+  <div class="cover-meta">
+    <span>February 2026</span>
+    <span>Confidential</span>
+    <span>v1.0</span>
+  </div>
+</div>
+
+<!-- ==================== PAGE 1: WHAT IT DOES ==================== -->
+<div class="page">
+  <div class="section-number">Section 01</div>
+  <div class="section-title">What AI Comply Does</div>
+  <div class="section-subtitle">AI Comply is a web-based compliance platform that helps small and medium enterprises understand, assess, and demonstrate compliance with the EU AI Act — the world's first comprehensive AI regulation.</div>
+
+  <div class="stat-strip">
+    <div class="stat-box">
+      <div class="value">4</div>
+      <div class="label">Core Modules</div>
+    </div>
+    <div class="stat-box">
+      <div class="value">29</div>
+      <div class="label">Automated Tests</div>
+    </div>
+    <div class="stat-box">
+      <div class="value">7</div>
+      <div class="label">Articles Covered</div>
+    </div>
+    <div class="stat-box">
+      <div class="value">4</div>
+      <div class="label">Risk Tiers</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card card-accent">
+      <div class="card-icon blue">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <h3>Compliance Dashboard</h3>
+      <p>Real-time overview of your organisation's AI compliance posture. Tracks overall compliance score (currently 72%), open findings, registered AI systems, and regulatory deadlines. Includes an interactive 12-step compliance checklist mapped to EU AI Act articles.</p>
+    </div>
+    <div class="card card-accent green">
+      <div class="card-icon green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <h3>Compliance Assessment Wizard</h3>
+      <p>Guided 5-step assessment flow that walks users through system information, risk classification, obligation mapping, documentation review, and final assessment. Automatically determines risk level based on AI domain and use-case answers.</p>
+    </div>
+    <div class="card card-accent orange">
+      <div class="card-icon orange">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h3>Risk Classification Engine</h3>
+      <p>Visual risk pyramid showing all four EU AI Act risk tiers (Unacceptable, High, Limited, Minimal). Includes detailed Annex III category mapping, prohibited practice warnings, and a live view of your systems grouped by risk level.</p>
+    </div>
+    <div class="card card-accent red">
+      <div class="card-icon red">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <h3>Automated Test Reports</h3>
+      <p>Run automated compliance tests against your AI systems covering Articles 9-15. Generates detailed pass/fail/warning results across 29 test cases with severity-rated findings and specific remediation guidance. Targets audit-readiness.</p>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step"><strong>Register</strong><span>Add AI system</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong>Classify</strong><span>Determine risk tier</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong>Assess</strong><span>Map obligations</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong>Test</strong><span>Run compliance tests</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><strong>Remediate</strong><span>Fix &amp; document</span></div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 2: THE PROBLEM ==================== -->
+<div class="page">
+  <div class="section-number">Section 02</div>
+  <div class="section-title">The Problem It Solves</div>
+  <div class="section-subtitle">The EU AI Act creates significant compliance challenges for SMEs who lack the legal teams, technical resources, and regulatory expertise that large enterprises can afford.</div>
+
+  <div class="problem-box">
+    <h3>The Challenge for SMEs</h3>
+    <ul>
+      <li><strong>Regulatory complexity</strong> — The EU AI Act spans 85+ articles, 13 annexes, and cross-references GDPR, the Machinery Regulation, and sectoral laws. SMEs cannot afford dedicated legal teams to interpret it all.</li>
+      <li><strong>Risk classification confusion</strong> — Determining whether an AI system is "high-risk" requires mapping it against Annex III categories, understanding intended purpose, and evaluating safety implications. Most SMEs guess wrong.</li>
+      <li><strong>Compliance deadlines are imminent</strong> — Prohibited practices were banned Feb 2025, GPAI rules started Aug 2025, and full high-risk compliance is required by Aug 2, 2026. Many SMEs haven't started.</li>
+      <li><strong>No affordable tooling exists</strong> — Enterprise GRC platforms (OneTrust, ServiceNow) cost $50k-$500k/year. SMEs with 2-50 AI systems need something purpose-built and affordable.</li>
+      <li><strong>Audit evidence gaps</strong> — Even compliant organisations struggle to produce the documentation, test results, and traceability records that notified bodies and market surveillance authorities require.</li>
+      <li><strong>Penalties are severe</strong> — Fines of up to EUR 35 million or 7% of global annual turnover for the most serious violations. SMEs face existential risk from non-compliance.</li>
+    </ul>
+  </div>
+
+  <div class="solution-box">
+    <h3>How AI Comply Helps</h3>
+    <ul>
+      <li><strong>Plain-language guidance</strong> — Translates complex legal requirements into clear, actionable checklists and step-by-step wizards that non-lawyers can follow.</li>
+      <li><strong>Automatic risk classification</strong> — Answer a few questions about your AI system and the platform determines the correct risk tier, Annex III category, and applicable articles.</li>
+      <li><strong>Obligation mapping</strong> — Once classified, the platform shows exactly which of the 7 high-risk obligations (Art. 9-15) apply and tracks compliance status for each.</li>
+      <li><strong>Automated testing</strong> — Run 29 automated compliance tests covering risk management, data governance, transparency, human oversight, accuracy, and documentation.</li>
+      <li><strong>Remediation guidance</strong> — Every failed test comes with specific, actionable remediation steps and effort estimates so teams know exactly what to fix.</li>
+      <li><strong>Audit-ready evidence</strong> — Generates timestamped compliance reports with test results, findings, and remediation records that can be presented to regulators.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== PAGE 3: HOW WE COULD MAKE IT BETTER ==================== -->
+<div class="page">
+  <div class="section-number">Section 03</div>
+  <div class="section-title">How We Could Make It Better</div>
+  <div class="section-subtitle">The current platform is a strong foundation. Here are high-impact improvements that would significantly increase value for SME users.</div>
+
+  <ol class="numbered-list">
+    <li><strong>Live document scanning &amp; gap analysis</strong> — Let users upload their existing documentation (risk assessments, data sheets, technical docs) and automatically identify gaps against EU AI Act requirements. Currently, compliance status is manually tracked; AI-powered document analysis would save hours of manual review per system.</li>
+    <li><strong>Continuous monitoring &amp; alerting</strong> — Move from point-in-time reports to continuous compliance monitoring. Watch for model drift, logging failures, or documentation expiry and send alerts before they become audit findings. This turns AI Comply from a "check once" tool into an always-on compliance co-pilot.</li>
+    <li><strong>Multi-tenant team collaboration</strong> — Add role-based access (Compliance Officer, Developer, Auditor, Executive), assignment workflows, and comment threads on findings. SMEs typically have 3-10 people involved in AI compliance across legal, engineering, and management.</li>
+    <li><strong>Conformity assessment workflow</strong> — Build the full Article 43 conformity assessment pipeline: internal control procedures, third-party assessment routing, CE marking preparation, and EU database registration (Art. 49). This is the most complex compliance requirement and no affordable tool supports it today.</li>
+    <li><strong>Regulatory change tracking</strong> — The EU AI Act has delegated acts, implementing acts, and harmonised standards still being developed. Auto-track regulatory updates and surface which of your systems are affected by new requirements or interpretive guidance.</li>
+    <li><strong>API-first architecture &amp; integrations</strong> — Expose a REST API so that CI/CD pipelines can run compliance checks on every deployment. Integrate with existing tools: Jira (finding tracking), Confluence (documentation), GitHub (code-level checks), Slack (alerts).</li>
+    <li><strong>Benchmarking &amp; industry comparisons</strong> — Show anonymised compliance benchmarks so SMEs can see how they compare to peers in their industry. This motivates action and helps prioritise the most commonly-failed requirements.</li>
+    <li><strong>Multi-regulation support</strong> — Expand beyond the EU AI Act to cover GDPR AI provisions, the AI Liability Directive, sector-specific rules (MDR for medical AI, MiFID for financial AI), and upcoming regulations in the UK, US, and Canada.</li>
+  </ol>
+</div>
+
+<!-- ==================== PAGE 4: NVIDIA TOOLS ==================== -->
+<div class="page">
+  <div class="section-number">Section 04</div>
+  <div class="section-title">Could NVIDIA Tools Help?</div>
+  <div class="section-subtitle">NVIDIA offers several AI infrastructure tools that could significantly enhance AI Comply's capabilities — especially for automated testing, model evaluation, and building an intelligent compliance agent.</div>
+
+  <div class="card-grid">
+    <div class="card card-accent nvidia">
+      <div class="card-icon nvidia">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>NVIDIA NeMo Guardrails</h3>
+      <p>Add programmable guardrails to any LLM-powered feature in AI Comply. Use it to enforce safety policies when generating compliance guidance, prevent hallucinated legal advice, and ensure outputs stay grounded in actual EU AI Act text. Critical for trust.</p>
+      <div style="margin-top:12px;">
+        <span class="tag nvidia">Safety</span>
+        <span class="tag nvidia">Guardrails</span>
+        <span class="tag nvidia">Trust</span>
+      </div>
+    </div>
+    <div class="card card-accent nvidia">
+      <div class="card-icon nvidia">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </div>
+      <h3>NVIDIA NIM Microservices</h3>
+      <p>Deploy optimised inference endpoints for document analysis, bias detection, and compliance scoring. NIM provides pre-optimised containers for LLMs that can run on-premises — important for SMEs handling sensitive compliance data who don't want to send documents to external APIs.</p>
+      <div style="margin-top:12px;">
+        <span class="tag nvidia">Inference</span>
+        <span class="tag nvidia">On-Prem</span>
+        <span class="tag nvidia">Performance</span>
+      </div>
+    </div>
+    <div class="card card-accent nvidia">
+      <div class="card-icon nvidia">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      </div>
+      <h3>NVIDIA Morpheus</h3>
+      <p>Use Morpheus for real-time cybersecurity monitoring of your AI systems — directly addressing Art. 15 (Accuracy, Robustness &amp; Cybersecurity). Detect adversarial attacks, data poisoning, and anomalous inputs that the current platform flags but cannot actively monitor.</p>
+      <div style="margin-top:12px;">
+        <span class="tag nvidia">Security</span>
+        <span class="tag nvidia">Real-time</span>
+        <span class="tag nvidia">Art. 15</span>
+      </div>
+    </div>
+    <div class="card card-accent nvidia">
+      <div class="card-icon nvidia">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h3>NVIDIA AI Enterprise</h3>
+      <p>The full enterprise AI software suite provides model training, fine-tuning, and evaluation capabilities. Use it to build custom compliance scoring models trained on EU AI Act case law, guidance documents, and audit findings — making risk classification far more accurate than rule-based logic.</p>
+      <div style="margin-top:12px;">
+        <span class="tag nvidia">Training</span>
+        <span class="tag nvidia">Fine-tuning</span>
+        <span class="tag nvidia">Enterprise</span>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:14px;color:var(--gray-700);line-height:1.65;margin-top:8px;"><strong>Verdict:</strong> NVIDIA tools are a strong fit — especially NeMo Guardrails for safe AI-powered guidance, NIM for private inference, and Morpheus for real-time security monitoring. They'd elevate AI Comply from a static checklist tool to an intelligent, continuously-monitoring compliance platform.</p>
+</div>
+
+<!-- ==================== PAGE 5: AGENTIC AI ARCHITECTURE ==================== -->
+<div class="page">
+  <div class="section-number">Section 05</div>
+  <div class="section-title">Should We Build a<br>Compliance Agent?</div>
+  <div class="section-subtitle">Yes. An agentic AI system — a "Compliance Co-pilot" — would be the single highest-impact upgrade to AI Comply. Here's what it would look like and why it matters.</div>
+
+  <div class="card" style="background: linear-gradient(135deg, var(--blue-50) 0%, #fff 100%); border: 2px solid var(--blue-600); margin-bottom: 28px;">
+    <h3 style="font-size:20px; color:var(--blue-700); margin-bottom:12px;">What Is a Compliance Agent?</h3>
+    <p>An autonomous AI agent that can read your documentation, run compliance checks, identify gaps, draft remediation plans, and generate audit-ready reports — all through natural language conversation. Think of it as a junior compliance analyst that works 24/7, never forgets a regulation, and costs a fraction of a human hire.</p>
+  </div>
+
+  <div class="arch-box">
+    <h3>Proposed Agent Architecture</h3>
+    <div class="arch-row">
+      <div class="arch-node"><strong>User Interface</strong><span>Chat + Dashboard</span></div>
+    </div>
+    <div style="text-align:center;color:var(--gray-500);margin:-8px 0 8px;">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node"><strong>Orchestrator Agent</strong><span>Task routing &amp; planning</span></div>
+    </div>
+    <div style="text-align:center;color:var(--gray-500);margin:-8px 0 8px;">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node"><strong>Document Analyst</strong><span>Parse &amp; evaluate docs</span></div>
+      <div class="arch-node"><strong>Risk Classifier</strong><span>Annex III mapping</span></div>
+      <div class="arch-node highlight"><strong>Test Runner</strong><span>Art. 9-15 checks</span></div>
+      <div class="arch-node"><strong>Report Writer</strong><span>Generate findings</span></div>
+    </div>
+    <div style="text-align:center;color:var(--gray-500);margin:-8px 0 8px;">&#8595;</div>
+    <div class="arch-row">
+      <div class="arch-node highlight"><strong>NeMo Guardrails</strong><span>Safety &amp; grounding</span></div>
+      <div class="arch-node highlight"><strong>NIM Inference</strong><span>Private LLM endpoint</span></div>
+      <div class="arch-node"><strong>EU AI Act RAG</strong><span>Regulation knowledge base</span></div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card card-accent">
+      <h3>What the Agent Could Do</h3>
+      <ul>
+        <li><strong>"Assess my HR screening tool"</strong> — Agent reads docs, runs tests, writes report</li>
+        <li><strong>"What do I need for Art. 14?"</strong> — Answers with your specific context</li>
+        <li><strong>"Draft a risk management plan"</strong> — Generates a tailored Art. 9 document</li>
+        <li><strong>"Prepare me for audit"</strong> — Identifies all gaps and creates a remediation sprint plan</li>
+        <li><strong>"Monitor my systems overnight"</strong> — Runs continuous checks, alerts on drift</li>
+      </ul>
+    </div>
+    <div class="card card-accent green">
+      <h3>Why It Matters for SMEs</h3>
+      <ul>
+        <li><strong>10x faster compliance</strong> — Reduces assessment time from weeks to hours</li>
+        <li><strong>No legal team required</strong> — Agent has regulation knowledge built in</li>
+        <li><strong>Always current</strong> — RAG pipeline stays updated with new guidance</li>
+        <li><strong>Audit confidence</strong> — Evidence is structured, timestamped, and traceable</li>
+        <li><strong>Cost: ~$200/month vs $15k/month</strong> for a human compliance consultant</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size:17px; font-weight:700; margin-bottom:12px;">Recommended Tech Stack for the Agent</h3>
+  <div class="card-grid-3">
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag blue">LLM</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>Claude / GPT-4</strong><br>Core reasoning</p>
+    </div>
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag nvidia">Inference</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>NVIDIA NIM</strong><br>Private deployment</p>
+    </div>
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag nvidia">Safety</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>NeMo Guardrails</strong><br>Output safety</p>
+    </div>
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag green">RAG</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>LangChain + Pinecone</strong><br>Regulation KB</p>
+    </div>
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag orange">Orchestration</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>LangGraph</strong><br>Multi-agent flow</p>
+    </div>
+    <div class="card" style="padding:20px; text-align:center;">
+      <span class="tag nvidia">Security</span>
+      <p style="margin-top:8px; font-size:13px;"><strong>Morpheus</strong><br>Runtime monitoring</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 6: CONCLUSION ==================== -->
+<div class="page" style="display:flex;flex-direction:column;">
+  <div class="section-number">Section 06</div>
+  <div class="section-title">Summary &amp; Recommendation</div>
+  <div class="section-subtitle">AI Comply is well-positioned to become the go-to EU AI Act compliance tool for SMEs. Here's the bottom line.</div>
+
+  <div class="card-grid" style="margin-bottom:32px;">
+    <div class="card card-accent">
+      <h3>What We Have Today</h3>
+      <ul>
+        <li>Compliance dashboard with real-time KPIs</li>
+        <li>5-step assessment wizard with risk classification</li>
+        <li>Visual risk pyramid with Annex III mapping</li>
+        <li>29 automated compliance tests across Art. 9-15</li>
+        <li>Findings with remediation guidance</li>
+        <li>AI system registry tracking 6 systems</li>
+        <li>12-step compliance checklist</li>
+        <li>Regulatory deadline tracking</li>
+        <li>Responsive, modern UI design system</li>
+      </ul>
+    </div>
+    <div class="card card-accent green">
+      <h3>What We Should Build Next</h3>
+      <ul>
+        <li><strong>Phase 1:</strong> AI-powered document scanning &amp; gap analysis</li>
+        <li><strong>Phase 2:</strong> Compliance Agent (chat-based co-pilot)</li>
+        <li><strong>Phase 3:</strong> Continuous monitoring &amp; alerting</li>
+        <li><strong>Phase 4:</strong> NVIDIA NIM/Morpheus integration for private inference &amp; security</li>
+        <li><strong>Phase 5:</strong> Conformity assessment workflow &amp; CE marking</li>
+        <li><strong>Phase 6:</strong> Multi-regulation expansion (GDPR AI, AI Liability Directive)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="background: linear-gradient(135deg, #f0f7e0 0%, #fff 100%); border: 2px solid var(--nvidia-green); margin-bottom: 28px;">
+    <h3 style="color:#5a8c00; margin-bottom:8px;">NVIDIA Tools Verdict</h3>
+    <p><strong>Yes, use them.</strong> NeMo Guardrails ensures safe AI-generated compliance guidance. NIM enables private, on-premises inference for sensitive documents. Morpheus provides real-time security monitoring that directly addresses Art. 15 requirements. Together, they transform AI Comply from a static dashboard into an intelligent, trustworthy compliance platform.</p>
+  </div>
+
+  <div class="card" style="background: linear-gradient(135deg, var(--blue-50) 0%, #fff 100%); border: 2px solid var(--blue-600);">
+    <h3 style="color:var(--blue-700); margin-bottom:8px;">Agent Verdict</h3>
+    <p><strong>Absolutely build it.</strong> A compliance agent is the highest-leverage feature on the roadmap. It turns AI Comply from a tool that presents information into one that does the compliance work. For an SME spending $15k/month on compliance consulting, a $200/month AI agent that handles 80% of the work is a no-brainer. Start with a RAG-powered Q&amp;A agent, add document analysis, then expand to autonomous assessment workflows.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>AI Comply &mdash; EU AI Act Compliance Platform</span>
+    <span>Confidential &mdash; February 2026</span>
+  </div>
+</div>
+
+</body>
+</html>
