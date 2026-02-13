@@ -97,14 +97,12 @@
 
       <!-- Stepper -->
       <div class="stepper">
-        <div class="stepper-step completed" data-step="1">
-          <div class="stepper-circle">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
+        <div class="stepper-step active" data-step="1">
+          <div class="stepper-circle">1</div>
           <span class="stepper-label">System Info</span>
         </div>
-        <div class="stepper-line completed"></div>
-        <div class="stepper-step active" data-step="2">
+        <div class="stepper-line"></div>
+        <div class="stepper-step" data-step="2">
           <div class="stepper-circle">2</div>
           <span class="stepper-label">Risk Classification</span>
         </div>
@@ -126,20 +124,85 @@
       </div>
 
       <!-- Step Content Panels -->
-      <!-- Step 1: System Info (completed) -->
-      <div class="tab-content" id="step-1">
+      <!-- Step 1: System Info -->
+      <div class="tab-content active" id="step-1">
         <div class="card">
+          <div class="card-header">
+            <h2 class="heading-4">Step 1: System Information</h2>
+            <span class="badge badge-info">Required</span>
+          </div>
           <div class="card-body">
-            <div class="alert alert-success">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              <div><strong>Step 1 Complete (Demo)</strong> Sample system information pre-loaded for demonstration purposes.</div>
+
+            <div class="alert alert-info">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <div>
+                <strong>Getting Started</strong>
+                Provide basic information about the AI system you want to assess. This data will be used throughout the assessment to tailor your compliance requirements.
+              </div>
             </div>
+
+            <div class="form-group">
+              <label class="form-label" for="aiSystemName">AI System Name</label>
+              <input type="text" class="form-input" id="aiSystemName" placeholder="e.g. Customer Churn Predictor">
+              <p class="form-hint">The name used to identify this AI system within your organisation.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="aiVersion">Version</label>
+              <input type="text" class="form-input" id="aiVersion" placeholder="e.g. 2.1.0" style="max-width: 200px;">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="aiProvider">Provider / Developer</label>
+              <input type="text" class="form-input" id="aiProvider" placeholder="e.g. Acme AI Ltd.">
+              <p class="form-hint">The organisation that developed or supplied the AI system.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="aiDeploymentDate">Deployment Date</label>
+              <input type="date" class="form-input" id="aiDeploymentDate" style="max-width: 220px;">
+              <p class="form-hint">The date this system was (or will be) put into service.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Data Categories Processed</label>
+              <p class="form-hint" style="margin-bottom: var(--space-2);">Select all categories of data that your AI system processes.</p>
+              <div style="display:flex; flex-direction:column; gap: var(--space-2); margin-top: var(--space-2);">
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="pii"> Personal Data (PII)
+                </label>
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="financial"> Financial Data
+                </label>
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="health"> Health Data
+                </label>
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="biometric"> Biometric Data
+                </label>
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="employment"> Employment Data
+                </label>
+                <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--text-sm);">
+                  <input type="checkbox" name="dataCategories" value="none"> None of the above
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="aiPurpose">System Purpose</label>
+              <textarea class="form-textarea" id="aiPurpose" placeholder="Describe the intended purpose and use-case of this AI system..."></textarea>
+              <p class="form-hint">A clear description of what the system does and how it is used. This will inform the risk classification in the next step.</p>
+            </div>
+
+            <p class="text-muted" style="margin-top: var(--space-4); font-size: var(--text-sm);">All fields are saved automatically. Click <strong>Continue</strong> to proceed to Risk Classification.</p>
+
           </div>
         </div>
       </div>
 
-      <!-- Step 2: Risk Classification (active) -->
-      <div class="tab-content active" id="step-2">
+      <!-- Step 2: Risk Classification -->
+      <div class="tab-content" id="step-2">
         <div class="card">
           <div class="card-header">
             <h2 class="heading-4">Step 2: Determine Risk Classification</h2>
@@ -188,6 +251,7 @@
                   <input type="radio" name="decisions" value="partial"> Partially — human reviews output
                 </label>
               </div>
+              <p class="form-hint">Note: Under the EU AI Act, 'partial' human oversight means a human reviews and can override AI outputs before they take effect. This is common in Irish SME deployments. If your human review is after-the-fact rather than before decisions are made, your system may still be classified as autonomous decision-making.</p>
             </div>
 
             <div class="form-group">

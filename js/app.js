@@ -1254,6 +1254,34 @@ function exportFullReport() {
   renderExportHistory();
 }
 
+function exportTeamPDF() {
+  showToast('Preparing Team PDF...', 'info');
+  AIComplyData.addExport({ type: 'PDF', name: 'Team Members Report', format: 'pdf' });
+  setTimeout(function () { window.print(); }, 300);
+  renderExportHistory();
+}
+
+function exportAssessmentsPDF() {
+  showToast('Preparing Assessments PDF...', 'info');
+  AIComplyData.addExport({ type: 'PDF', name: 'Assessments Report', format: 'pdf' });
+  setTimeout(function () { window.print(); }, 300);
+  renderExportHistory();
+}
+
+function exportActivityPDF() {
+  showToast('Preparing Activity Log PDF...', 'info');
+  AIComplyData.addExport({ type: 'PDF', name: 'Activity Log Report', format: 'pdf' });
+  setTimeout(function () { window.print(); }, 300);
+  renderExportHistory();
+}
+
+function exportSystemsPDF() {
+  showToast('Preparing AI Systems PDF...', 'info');
+  AIComplyData.addExport({ type: 'PDF', name: 'AI Systems Report', format: 'pdf' });
+  setTimeout(function () { window.print(); }, 300);
+  renderExportHistory();
+}
+
 /* ============================================================
    Documentation Page (pages/documentation.html)
    ============================================================ */

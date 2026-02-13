@@ -149,6 +149,16 @@
       border-radius: var(--radius-sm);
     }
     .findings-card .remediation strong { color: var(--color-gray-700); }
+    .severity-label { font-size: var(--text-xs); font-weight: 600; margin-left: var(--space-2); }
+    .severity-p1 { color: var(--color-danger); }
+    .severity-p2 { color: var(--color-warning); }
+    .status-row { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+    .status-row .status-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-gray-500); }
+    .status-btn { cursor:pointer; opacity:0.5; transition: opacity 0.2s; border:none; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .status-btn.active { opacity:1; }
+    .status-btn.status-open { background: var(--color-danger-light); color: var(--color-danger); }
+    .status-btn.status-progress { background: var(--color-warning-light); color: var(--color-warning); }
+    .status-btn.status-resolved { background: var(--color-success-light); color: var(--color-success); }
     @media (max-width: 768px) {
       .summary-grid { grid-template-columns: 1fr 1fr; }
     }
@@ -577,10 +587,17 @@
             <div style="display:flex;justify-content:space-between;align-items:start;">
               <h4>F-001: Emergency stop mechanism missing</h4>
               <span class="badge badge-danger">Critical</span>
+              <span class="severity-label severity-p1">Severity: P1 — Immediate</span>
             </div>
             <p>The HR Screening Tool has no mechanism for an authorised human to immediately halt the system's operation. Art. 14(4)(e) requires that oversight persons can interrupt the system using a "stop" button or similar procedure.</p>
             <div class="remediation">
               <strong>Remediation:</strong> Implement an admin-accessible emergency stop control that immediately halts all automated screening. Add a prominent "Pause AI Screening" toggle in the admin dashboard. Estimated effort: 2-3 days.
+            </div>
+            <div class="status-row">
+              <span class="status-label">Status:</span>
+              <button class="status-btn status-open active" type="button">Open</button>
+              <button class="status-btn status-progress" type="button">In Progress</button>
+              <button class="status-btn status-resolved" type="button">Resolved</button>
             </div>
           </div>
 
@@ -588,10 +605,17 @@
             <div style="display:flex;justify-content:space-between;align-items:start;">
               <h4>F-002: No automation bias safeguards</h4>
               <span class="badge badge-danger">Critical</span>
+              <span class="severity-label severity-p1">Severity: P1 — Immediate</span>
             </div>
             <p>There are no measures to prevent HR staff from over-relying on the AI's candidate rankings without independent review. Art. 14(4)(b) requires measures to prevent automation bias.</p>
             <div class="remediation">
               <strong>Remediation:</strong> Add mandatory human review checkpoints before shortlisting. Display confidence scores alongside rankings. Require reviewers to confirm they have independently assessed each candidate. Estimated effort: 3-5 days.
+            </div>
+            <div class="status-row">
+              <span class="status-label">Status:</span>
+              <button class="status-btn status-open active" type="button">Open</button>
+              <button class="status-btn status-progress" type="button">In Progress</button>
+              <button class="status-btn status-resolved" type="button">Resolved</button>
             </div>
           </div>
 
@@ -599,10 +623,17 @@
             <div style="display:flex;justify-content:space-between;align-items:start;">
               <h4>F-003: No adversarial robustness testing</h4>
               <span class="badge badge-danger">Critical</span>
+              <span class="severity-label severity-p2">Severity: P2 — High</span>
             </div>
             <p>The system has not been tested against adversarial inputs (e.g. deliberately crafted CVs designed to game the screening algorithm). Art. 15(4) requires robustness against attempts to alter system output by exploiting vulnerabilities.</p>
             <div class="remediation">
               <strong>Remediation:</strong> Commission adversarial testing with crafted input samples. Test for prompt injection, data poisoning, and evasion attacks. Document results and mitigations. Estimated effort: 1-2 weeks.
+            </div>
+            <div class="status-row">
+              <span class="status-label">Status:</span>
+              <button class="status-btn status-open active" type="button">Open</button>
+              <button class="status-btn status-progress" type="button">In Progress</button>
+              <button class="status-btn status-resolved" type="button">Resolved</button>
             </div>
           </div>
 
@@ -636,5 +667,19 @@
 
 <script src="../js/data.js"></script>
 <script src="../js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.status-row').forEach(function (row) {
+      row.querySelectorAll('.status-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          row.querySelectorAll('.status-btn').forEach(function (sibling) {
+            sibling.classList.remove('active');
+          });
+          btn.classList.add('active');
+        });
+      });
+    });
+  });
+</script>
 </body>
 </html>

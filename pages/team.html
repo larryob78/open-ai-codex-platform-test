@@ -83,6 +83,37 @@
         </div>
       </div>
 
+      <!-- Role-Based Access Control -->
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="card-header">
+          <h2 class="heading-4">Role-Based Access Control</h2>
+        </div>
+        <div class="card-body" style="padding:0;overflow-x:auto;">
+          <table class="data-table" style="width:100%;">
+            <thead>
+              <tr>
+                <th>Permission Level</th>
+                <th>Access Rights</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-primary">Admin</span></td>
+                <td>Full access — submit assessments, modify risk classifications, manage team, export reports, view audit logs</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-info">Editor</span></td>
+                <td>Can edit AI system records, update documentation, view reports. Cannot submit assessments or manage team members.</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-neutral">Viewer</span></td>
+                <td>Read-only access to dashboards, reports, and system registry. Cannot modify any records.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Team Table -->
       <div class="card">
         <div class="card-header">
@@ -95,6 +126,7 @@
                 <th>Name</th>
                 <th>Role</th>
                 <th>Permissions</th>
+                <th>Assigned Systems</th>
                 <th>Last Active</th>
                 <th style="text-align:right;">Actions</th>
               </tr>

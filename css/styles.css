@@ -537,6 +537,8 @@ tbody tr:hover {
 .badge-info::before    { background: var(--color-info); }
 .badge-neutral { background: var(--color-gray-100); color: var(--color-gray-600); }
 .badge-neutral::before { background: var(--color-gray-400); }
+.badge-primary { background: var(--color-primary-50); color: var(--color-primary-700); }
+.badge-primary::before { background: var(--color-primary-600); }
 
 /* Risk-level badges */
 .badge-risk-unacceptable { background: #fff5f5; color: var(--risk-unacceptable); }

@@ -55,7 +55,7 @@
 
       <div class="page-header">
         <h1 class="heading-2">Export Reports</h1>
-        <p>Download compliance data in CSV format and view your export history.</p>
+        <p>Download compliance data in CSV or PDF format and view your export history.</p>
       </div>
 
       <!-- Export Actions -->
@@ -66,10 +66,16 @@
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="1.5" style="margin-bottom:var(--space-3);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
             <h3 class="heading-4" style="margin-bottom:var(--space-2);">AI Systems</h3>
             <p class="text-sm text-muted" style="margin-bottom:var(--space-4);">Export all registered AI systems with risk levels, compliance scores, and status.</p>
-            <button class="btn btn-primary" onclick="exportCSV()" style="width:100%;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download CSV
-            </button>
+            <div style="display:flex;gap:var(--space-2);">
+              <button class="btn btn-primary" onclick="exportCSV()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+              <button class="btn btn-secondary" onclick="exportPDF()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Download PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -78,10 +84,16 @@
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="1.5" style="margin-bottom:var(--space-3);"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             <h3 class="heading-4" style="margin-bottom:var(--space-2);">Team Members</h3>
             <p class="text-sm text-muted" style="margin-bottom:var(--space-4);">Export team roster with roles, departments, and contact information.</p>
-            <button class="btn btn-primary" onclick="exportTeamCSV()" style="width:100%;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download CSV
-            </button>
+            <div style="display:flex;gap:var(--space-2);">
+              <button class="btn btn-primary" onclick="exportTeamCSV()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+              <button class="btn btn-secondary" onclick="exportTeamPDF()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Download PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -90,10 +102,16 @@
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="1.5" style="margin-bottom:var(--space-3);"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
             <h3 class="heading-4" style="margin-bottom:var(--space-2);">Assessments</h3>
             <p class="text-sm text-muted" style="margin-bottom:var(--space-4);">Export completed compliance assessments with risk classifications and scores.</p>
-            <button class="btn btn-primary" onclick="exportAssessmentsCSV()" style="width:100%;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download CSV
-            </button>
+            <div style="display:flex;gap:var(--space-2);">
+              <button class="btn btn-primary" onclick="exportAssessmentsCSV()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+              <button class="btn btn-secondary" onclick="exportAssessmentsPDF()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Download PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -102,10 +120,16 @@
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="1.5" style="margin-bottom:var(--space-3);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             <h3 class="heading-4" style="margin-bottom:var(--space-2);">Activity Log</h3>
             <p class="text-sm text-muted" style="margin-bottom:var(--space-4);">Export the full activity and audit log with timestamps and descriptions.</p>
-            <button class="btn btn-primary" onclick="exportActivityCSV()" style="width:100%;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download CSV
-            </button>
+            <div style="display:flex;gap:var(--space-2);">
+              <button class="btn btn-primary" onclick="exportActivityCSV()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+              <button class="btn btn-secondary" onclick="exportActivityPDF()" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Download PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -126,7 +150,30 @@
               </tr>
             </thead>
             <tbody id="exportHistory">
-              <!-- Rendered dynamically by app.js -->
+              <tr>
+                <td>AI Systems Report</td>
+                <td><span class="badge badge-info">PDF</span></td>
+                <td>10 Feb 2026</td>
+                <td>EXP-2026-004</td>
+              </tr>
+              <tr>
+                <td>Team Roster</td>
+                <td><span class="badge badge-neutral">CSV</span></td>
+                <td>8 Feb 2026</td>
+                <td>EXP-2026-003</td>
+              </tr>
+              <tr>
+                <td>Q4 2025 Compliance Assessment</td>
+                <td><span class="badge badge-info">PDF</span></td>
+                <td>31 Jan 2026</td>
+                <td>EXP-2026-002</td>
+              </tr>
+              <tr>
+                <td>Activity Log — January 2026</td>
+                <td><span class="badge badge-neutral">CSV</span></td>
+                <td>1 Feb 2026</td>
+                <td>EXP-2026-001</td>
+              </tr>
             </tbody>
           </table>
         </div>

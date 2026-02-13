@@ -227,6 +227,21 @@
             <button class="btn btn-sm btn-secondary" data-action="modal" data-modal="activity-log">View All</button>
           </div>
           <div class="card-body">
+            <!-- Activity Feed Filters -->
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-gray-100);">
+              <select class="form-select" style="width: auto; padding: var(--space-1) var(--space-3); font-size: var(--text-xs); border-radius: var(--radius-md);">
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>Last 90 days</option>
+                <option>All time</option>
+              </select>
+              <select class="form-select" style="width: auto; padding: var(--space-1) var(--space-3); font-size: var(--text-xs); border-radius: var(--radius-md);">
+                <option>All Activity</option>
+                <option>Assessments</option>
+                <option>System Changes</option>
+                <option>Team Updates</option>
+              </select>
+            </div>
             <div class="activity-feed">
               <div class="activity-item">
                 <div class="activity-dot green">
@@ -275,6 +290,40 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Top 3 Actions to Improve Your Score -->
+      <div class="card" style="margin-bottom: var(--space-8);">
+        <div class="card-header">
+          <h2 class="heading-4">Top 3 Actions to Improve Your Score</h2>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-3);">
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200); transition: background var(--transition-fast); cursor: pointer;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">
+            <div style="display: flex; align-items: center; gap: var(--space-3);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="2" style="flex-shrink: 0;"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style="font-size: var(--text-sm); font-weight: 500; color: var(--color-gray-800);">Upload Training Data Documentation</span>
+            </div>
+            <span class="badge badge-success">+5% improvement</span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200); transition: background var(--transition-fast); cursor: pointer;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">
+            <div style="display: flex; align-items: center; gap: var(--space-3);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="2" style="flex-shrink: 0;"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style="font-size: var(--text-sm); font-weight: 500; color: var(--color-gray-800);">Implement emergency stop for HR Screening Tool</span>
+            </div>
+            <span class="badge badge-info">+3% improvement</span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200); transition: background var(--transition-fast); cursor: pointer;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">
+            <div style="display: flex; align-items: center; gap: var(--space-3);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-600)" stroke-width="2" style="flex-shrink: 0;"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style="font-size: var(--text-sm); font-weight: 500; color: var(--color-gray-800);">Complete adversarial robustness testing</span>
+            </div>
+            <span class="badge badge-warning">+4% improvement</span>
+          </div>
+
         </div>
       </div>
 

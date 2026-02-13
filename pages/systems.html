@@ -10,6 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .sortable-th { cursor: pointer; user-select: none; }
+    .sortable-th:hover { color: var(--color-primary-600); }
+    .sort-icon { display: inline-block; margin-left: 4px; opacity: 0.3; }
+    .sortable-th.active .sort-icon { opacity: 1; }
+  </style>
 </head>
 <body>
 <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -86,12 +92,12 @@
           <table class="data-table" style="width:100%;">
             <thead>
               <tr>
-                <th>System Name</th>
-                <th>Risk Level</th>
+                <th class="sortable-th active" data-sort="name" data-dir="asc"><span>System Name</span><span class="sort-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg></span></th>
+                <th class="sortable-th" data-sort="riskLevel"><span>Risk Level</span><span class="sort-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg></span></th>
                 <th>Purpose</th>
-                <th>Status</th>
-                <th>Compliance</th>
-                <th>Last Reviewed</th>
+                <th class="sortable-th" data-sort="status"><span>Status</span><span class="sort-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg></span></th>
+                <th class="sortable-th" data-sort="compliance"><span>Compliance</span><span class="sort-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg></span></th>
+                <th class="sortable-th" data-sort="lastReviewed"><span>Last Reviewed</span><span class="sort-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg></span></th>
                 <th style="text-align:right;">Actions</th>
               </tr>
             </thead>
@@ -108,5 +114,64 @@
 
 <script src="../js/data.js"></script>
 <script src="../js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var upArrow = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>';
+    var downArrow = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+    var neutralArrow = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 4 18 9"/><polyline points="6 15 12 20 18 15"/></svg>';
+
+    var colIndexMap = { name: 0, riskLevel: 1, status: 3, compliance: 4, lastReviewed: 5 };
+
+    document.querySelectorAll('.sortable-th').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var sortKey = th.getAttribute('data-sort');
+        var currentDir = th.getAttribute('data-dir');
+        var newDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+        // Reset all headers
+        document.querySelectorAll('.sortable-th').forEach(function (otherTh) {
+          otherTh.classList.remove('active');
+          otherTh.removeAttribute('data-dir');
+          otherTh.querySelector('.sort-icon').innerHTML = neutralArrow;
+        });
+
+        // Set active header
+        th.classList.add('active');
+        th.setAttribute('data-dir', newDir);
+        th.querySelector('.sort-icon').innerHTML = newDir === 'asc' ? upArrow : downArrow;
+
+        // Sort rows
+        var tbody = document.getElementById('registryTableBody');
+        if (!tbody) return;
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        if (rows.length === 0) return;
+
+        var colIdx = colIndexMap[sortKey];
+        if (colIdx === undefined) return;
+
+        rows.sort(function (a, b) {
+          var cellA = a.cells[colIdx];
+          var cellB = b.cells[colIdx];
+          if (!cellA || !cellB) return 0;
+
+          var valA, valB;
+          if (sortKey === 'compliance') {
+            valA = parseInt(cellA.textContent.replace(/[^0-9]/g, ''), 10) || 0;
+            valB = parseInt(cellB.textContent.replace(/[^0-9]/g, ''), 10) || 0;
+            return newDir === 'asc' ? valA - valB : valB - valA;
+          }
+
+          valA = cellA.textContent.trim().toLowerCase();
+          valB = cellB.textContent.trim().toLowerCase();
+          if (valA < valB) return newDir === 'asc' ? -1 : 1;
+          if (valA > valB) return newDir === 'asc' ? 1 : -1;
+          return 0;
+        });
+
+        rows.forEach(function (row) { tbody.appendChild(row); });
+      });
+    });
+  });
+</script>
 </body>
 </html>
