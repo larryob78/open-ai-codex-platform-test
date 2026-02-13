@@ -87,11 +87,11 @@ var AIComplyData = (function () {
   ];
 
   var DEFAULT_TEAM = [
-    { id: 'team-1', name: 'Jane Doe', email: 'jane.doe@company.com', role: 'Compliance Officer', avatar: 'JD', permissions: 'admin', lastActive: '2026-02-12' },
-    { id: 'team-2', name: 'Marcus Chen', email: 'marcus.chen@company.com', role: 'AI Engineer', avatar: 'MC', permissions: 'editor', lastActive: '2026-02-11' },
-    { id: 'team-3', name: 'Sarah Williams', email: 'sarah.w@company.com', role: 'Data Protection Officer', avatar: 'SW', permissions: 'editor', lastActive: '2026-02-10' },
-    { id: 'team-4', name: 'Tom Baker', email: 'tom.baker@company.com', role: 'Legal Counsel', avatar: 'TB', permissions: 'viewer', lastActive: '2026-02-09' },
-    { id: 'team-5', name: 'Priya Patel', email: 'priya.p@company.com', role: 'ML Operations Lead', avatar: 'PP', permissions: 'editor', lastActive: '2026-02-12' }
+    { id: 'team-1', name: 'Jane Doe', email: 'jane.doe@company.com', role: 'Compliance Officer', avatar: 'JD', permissions: 'admin', assignedSystems: 'All Systems', lastActive: '2026-02-12' },
+    { id: 'team-2', name: 'Marcus Chen', email: 'marcus.chen@company.com', role: 'AI Engineer', avatar: 'MC', permissions: 'editor', assignedSystems: 'HR Screening Tool, Loan Approval Model', lastActive: '2026-02-11' },
+    { id: 'team-3', name: 'Sarah Williams', email: 'sarah.w@company.com', role: 'Data Protection Officer', avatar: 'SW', permissions: 'editor', assignedSystems: 'All Systems', lastActive: '2026-02-10' },
+    { id: 'team-4', name: 'Tom Baker', email: 'tom.baker@company.com', role: 'Legal Counsel', avatar: 'TB', permissions: 'viewer', assignedSystems: 'Loan Approval Model', lastActive: '2026-02-09' },
+    { id: 'team-5', name: 'Priya Patel', email: 'priya.p@company.com', role: 'ML Operations Lead', avatar: 'PP', permissions: 'editor', assignedSystems: 'Customer Chatbot, Inventory Forecaster', lastActive: '2026-02-12' }
   ];
 
   var DEFAULT_CHECKLIST = [true, true, true, true, true, true, true, true, false, false, false, false];
@@ -291,7 +291,7 @@ var AIComplyData = (function () {
     /* --- Wizard state --- */
     getWizardStep: function () {
       var s = localStorage.getItem(KEYS.wizardStep);
-      return s ? parseInt(s, 10) : 2;
+      return s ? parseInt(s, 10) : 1;
     },
     setWizardStep: function (step) {
       localStorage.setItem(KEYS.wizardStep, String(step));

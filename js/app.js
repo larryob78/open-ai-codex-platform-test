@@ -770,7 +770,7 @@ function submitAssessment() {
   });
 
   // Reset wizard
-  AIComplyData.setWizardStep(2);
+  AIComplyData.setWizardStep(1);
   AIComplyData.setWizardForm({});
   showToast('Assessment submitted successfully!', 'success');
   setTimeout(function () { window.location.href = getPageUrl('index.html'); }, 1000);
@@ -1053,6 +1053,7 @@ function renderTeamTable() {
       '<div><strong>' + escapeHTML(m.name) + '</strong><div class="text-xs text-muted">' + escapeHTML(m.email) + '</div></div></div></td>' +
       '<td>' + escapeHTML(m.role) + '</td>' +
       '<td><span class="badge ' + (permBadge[m.permissions] || 'badge-neutral') + '">' + (permLabels[m.permissions] || m.permissions) + '</span></td>' +
+      '<td class="text-sm text-muted">' + (m.assignedSystems || '\u2014') + '</td>' +
       '<td class="text-sm text-muted">' + AIComplyData.formatDate(m.lastActive) + '</td>' +
       '<td><button class="btn btn-sm btn-ghost" onclick="openEditTeamMemberModal(\'' + m.id + '\')">Edit</button>' +
       '<button class="btn btn-sm btn-ghost" style="color:var(--color-danger);" onclick="removeTeamMember(\'' + m.id + '\')">Remove</button></td></tr>';
@@ -1202,7 +1203,7 @@ function renderExportHistory() {
   if (!container) return;
   var exports = AIComplyData.getExports();
   if (exports.length === 0) {
-    container.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:var(--space-8);color:var(--color-gray-500);">No exports yet. Use the buttons above to generate your first export.</td></tr>';
+    // Keep any static demo rows already in the HTML
     return;
   }
   container.innerHTML = exports.map(function (ex) {
