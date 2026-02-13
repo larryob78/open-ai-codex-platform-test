@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initWizard();
   initChecklist();
   initRiskClassifier();
+  initRiskPageSystems();
   initReportPage();
   initTeamPage();
   initSystemsPage();
@@ -873,6 +874,47 @@ function initRiskClassifier() {
       resultBox.style.display = 'none';
     }
   });
+}
+
+/* ============================================================
+   Risk Page — Dynamic Systems by Risk Level (pages/risk.html)
+   ============================================================ */
+function initRiskPageSystems() {
+  var grid = document.getElementById('riskSystemsGrid');
+  if (!grid || typeof AIComplyData === 'undefined') return;
+
+  var systems = AIComplyData.getSystems();
+  var groups = { high: [], limited: [], minimal: [] };
+  systems.forEach(function (s) {
+    if (groups[s.riskLevel]) groups[s.riskLevel].push(s);
+  });
+
+  var riskMeta = [
+    { key: 'high', label: 'High Risk', borderColor: 'var(--risk-high)', bgColor: 'var(--risk-high)', textColor: '#fff' },
+    { key: 'limited', label: 'Limited Risk', borderColor: 'var(--risk-limited)', bgColor: 'var(--risk-limited)', textColor: 'var(--color-gray-800)' },
+    { key: 'minimal', label: 'Minimal Risk', borderColor: 'var(--risk-minimal)', bgColor: 'var(--risk-minimal)', textColor: '#fff' }
+  ];
+
+  grid.innerHTML = riskMeta.map(function (rm) {
+    var list = groups[rm.key];
+    var systemsHTML = list.length === 0 ?
+      '<div style="padding:var(--space-3) 0;color:var(--color-gray-500);font-size:var(--text-sm);">No systems in this category.</div>' :
+      list.map(function (s, i) {
+        var color = AIComplyData.complianceColor(s.compliance);
+        var border = i < list.length - 1 ? 'border-bottom:1px solid var(--color-gray-100);' : '';
+        return '<div style="padding:var(--space-3) 0;' + border + '">' +
+          '<strong class="text-sm">' + escapeHTML(s.name) + '</strong>' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;">' +
+          '<div class="progress-bar" style="flex:1;"><div class="progress-fill ' + color + '" style="width:' + s.compliance + '%;"></div></div>' +
+          '<span class="text-xs">' + s.compliance + '%</span></div></div>';
+      }).join('');
+
+    return '<div style="border:2px solid ' + rm.borderColor + ';border-radius:var(--radius-lg);overflow:hidden;">' +
+      '<div style="background:' + rm.bgColor + ';color:' + rm.textColor + ';padding:var(--space-3) var(--space-4);">' +
+      '<strong>' + rm.label + '</strong>' +
+      '<span style="float:right;font-size:var(--text-sm);opacity:0.9;">' + list.length + ' system' + (list.length !== 1 ? 's' : '') + '</span></div>' +
+      '<div style="padding:var(--space-4);">' + systemsHTML + '</div></div>';
+  }).join('');
 }
 
 /* ============================================================
