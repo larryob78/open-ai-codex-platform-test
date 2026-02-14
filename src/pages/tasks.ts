@@ -1,7 +1,8 @@
-import { db } from '../db';
+import { db, addAuditEntry } from '../db';
 import { escapeHtml } from '../utils/escapeHtml';
 import { openModal, closeModal } from '../components/modal';
 import { showToast } from '../components/toast';
+import { maxLength } from '../utils/validate';
 import type { Task } from '../types';
 
 const COLUMNS: { status: Task['status']; label: string; badgeClass: string }[] = [
@@ -20,6 +21,12 @@ function render(): string {
       <div class="page-header">
         <h1>Task Board</h1>
         <button class="btn btn-primary" id="task-board-add">+ Add Task</button>
+        <select class="form-select" id="task-priority-filter" style="width:auto;">
+          <option value="">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
       </div>
 
       <div class="disclaimer-banner">
@@ -74,13 +81,15 @@ function renderTaskCard(task: Task): string {
 
 async function refreshBoard(): Promise<void> {
   const allTasks = await db.tasks.toArray();
+  const priorityFilter = (document.getElementById('task-priority-filter') as HTMLSelectElement | null)?.value ?? '';
+  const filteredTasks = priorityFilter ? allTasks.filter((t) => t.priority === priorityFilter) : allTasks;
 
   for (const col of COLUMNS) {
     const container = document.getElementById(`column-${col.status}`);
     const countEl = document.getElementById(`count-${col.status}`);
     if (!container) continue;
 
-    const tasks = allTasks
+    const tasks = filteredTasks
       .filter((t) => t.status === col.status)
       .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2));
 
@@ -109,6 +118,7 @@ function wireCardButtons(): void {
       const prev = prevStatus(task.status);
       if (prev) {
         await db.tasks.update(id, { status: prev });
+        await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + prev, id);
         await refreshBoard();
       }
     });
@@ -125,6 +135,7 @@ function wireCardButtons(): void {
         const updates: Partial<Task> = { status: next };
         if (next === 'complete') updates.completedAt = new Date().toISOString();
         await db.tasks.update(id, updates);
+        await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + next, id);
         showToast(next === 'complete' ? 'Task completed!' : 'Task moved.', 'success');
         await refreshBoard();
       }
@@ -210,6 +221,7 @@ function openEditModal(task: Task): void {
     }
 
     await db.tasks.update(task.id!, updates);
+    await addAuditEntry('update', 'task', 'Updated task: ' + title, task.id);
     showToast('Task updated.', 'success');
     closeModal();
     await refreshBoard();
@@ -217,6 +229,7 @@ function openEditModal(task: Task): void {
 
   modal.querySelector('#tb-delete')?.addEventListener('click', async () => {
     await db.tasks.delete(task.id!);
+    await addAuditEntry('delete', 'task', 'Deleted task: ' + task.title, task.id);
     showToast('Task deleted.', 'success');
     closeModal();
     await refreshBoard();
@@ -266,6 +279,11 @@ function openAddModal(): void {
       showToast('Please enter a task title.', 'warning');
       return;
     }
+    const titleLenErr = maxLength(title, 200, 'Title');
+    if (titleLenErr) {
+      showToast(titleLenErr, 'warning');
+      return;
+    }
 
     const description = (modal.querySelector<HTMLTextAreaElement>('#tb-new-desc')?.value ?? '').trim();
     const owner = (modal.querySelector<HTMLInputElement>('#tb-new-owner')?.value ?? '').trim();
@@ -273,7 +291,7 @@ function openAddModal(): void {
     const priority = (modal.querySelector<HTMLSelectElement>('#tb-new-priority')?.value ??
       'medium') as Task['priority'];
 
-    await db.tasks.add({
+    const newId = await db.tasks.add({
       title,
       description,
       category: 'manual',
@@ -284,6 +302,7 @@ function openAddModal(): void {
       dueDate,
       createdAt: new Date().toISOString(),
     });
+    await addAuditEntry('create', 'task', 'Created task: ' + title, newId as number);
 
     showToast('Task created.', 'success');
     closeModal();
@@ -295,6 +314,7 @@ function openAddModal(): void {
 
 async function init(): Promise<void> {
   document.getElementById('task-board-add')?.addEventListener('click', openAddModal);
+  document.getElementById('task-priority-filter')?.addEventListener('change', () => refreshBoard());
   await refreshBoard();
 }
 

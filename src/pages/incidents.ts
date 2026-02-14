@@ -1,4 +1,5 @@
-import { db } from '../db';
+import { db, addAuditEntry } from '../db';
+import { maxLength } from '../utils/validate';
 import type { Incident } from '../types';
 import { generateIncidentPdf, downloadBlob } from '../services/exportService';
 import { escapeHtml } from '../utils/escapeHtml';
@@ -55,6 +56,16 @@ function render(): string {
           <h2 class="card-title">Incident Register</h2>
           <button class="btn btn-primary" id="report-incident-btn">Report Incident</button>
         </div>
+        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+          <input class="form-input" id="incident-search" type="search" placeholder="Search incidents..." style="flex:1; min-width:200px;" />
+          <select class="form-select" id="incident-severity-filter" style="width:auto;">
+            <option value="">All Severities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
         <div id="incidents-table"></div>
       </div>
     </div>`;
@@ -64,6 +75,37 @@ function render(): string {
 
 async function init(): Promise<void> {
   await renderTable();
+
+  const filterIncidents = async () => {
+    const searchVal =
+      (document.getElementById('incident-search') as HTMLInputElement | null)?.value.toLowerCase().trim() ?? '';
+    const severityVal = (document.getElementById('incident-severity-filter') as HTMLSelectElement | null)?.value ?? '';
+    const all = await db.incidents.orderBy('id').reverse().toArray();
+    const filtered = all.filter((inc) => {
+      const matchSearch =
+        !searchVal || inc.title.toLowerCase().includes(searchVal) || inc.description.toLowerCase().includes(searchVal);
+      const matchSeverity = !severityVal || inc.severity === severityVal;
+      return matchSearch && matchSeverity;
+    });
+    const container = document.getElementById('incidents-table');
+    if (!container) return;
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No matching incidents found.</div>';
+      return;
+    }
+    container.innerHTML =
+      '<div class="table-wrap"><table><thead><tr><th>Title</th><th>Severity</th><th>Status</th><th>Reported By</th><th>Date</th><th>Actions</th></tr></thead><tbody>' +
+      filtered.map((inc) => renderRow(inc)).join('') +
+      '</tbody></table></div>';
+    for (const inc of filtered) {
+      document.getElementById('view-incident-' + inc.id)?.addEventListener('click', () => viewIncident(inc));
+      document.getElementById('edit-incident-' + inc.id)?.addEventListener('click', () => openForm(inc));
+      document.getElementById('export-incident-' + inc.id)?.addEventListener('click', () => exportPdf(inc.id!));
+      document.getElementById('delete-incident-' + inc.id)?.addEventListener('click', () => deleteIncident(inc.id!));
+    }
+  };
+  document.getElementById('incident-search')?.addEventListener('input', filterIncidents);
+  document.getElementById('incident-severity-filter')?.addEventListener('change', filterIncidents);
 
   document.getElementById('report-incident-btn')?.addEventListener('click', () => openForm());
 }
@@ -272,6 +314,17 @@ async function openForm(existing?: Incident): Promise<void> {
       return;
     }
 
+    const titleLenErr = maxLength(titleVal, 200, 'Title');
+    if (titleLenErr) {
+      showToast(titleLenErr, 'warning');
+      return;
+    }
+    const descLenErr = maxLength(descVal, 2000, 'Description');
+    if (descLenErr) {
+      showToast(descLenErr, 'warning');
+      return;
+    }
+
     const severity = (modal.querySelector<HTMLSelectElement>('#inc-severity')?.value ?? 'low') as Incident['severity'];
     const status = (modal.querySelector<HTMLSelectElement>('#inc-status')?.value ?? 'open') as Incident['status'];
     const reportedAt = modal.querySelector<HTMLInputElement>('#inc-reportedAt')?.value ?? todayIso();
@@ -297,9 +350,11 @@ async function openForm(existing?: Incident): Promise<void> {
 
     if (isEdit && existing?.id) {
       await db.incidents.update(existing.id, record);
+      await addAuditEntry('update', 'incident', 'Updated incident: ' + titleVal, existing.id);
       showToast('Incident updated.', 'success');
     } else {
-      await db.incidents.add(record);
+      const newId = await db.incidents.add(record);
+      await addAuditEntry('create', 'incident', 'Reported incident: ' + titleVal, newId as number);
       showToast('Incident reported.', 'success');
     }
 
@@ -338,6 +393,7 @@ function deleteIncident(id: number): void {
   modal.querySelector('#delete-inc-cancel')?.addEventListener('click', () => closeModal());
   modal.querySelector('#delete-inc-confirm')?.addEventListener('click', async () => {
     await db.incidents.delete(id);
+    await addAuditEntry('delete', 'incident', 'Deleted incident', id);
     showToast('Incident deleted.', 'success');
     closeModal();
     await renderTable();

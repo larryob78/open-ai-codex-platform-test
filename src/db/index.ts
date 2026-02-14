@@ -8,6 +8,7 @@ import type {
   TrainingCompletion,
   GeneratedDoc,
   ObligationCheck,
+  AuditEntry,
 } from '../types';
 
 class ComplianceDB extends Dexie {
@@ -19,6 +20,7 @@ class ComplianceDB extends Dexie {
   trainingCompletions!: Table<TrainingCompletion>;
   generatedDocs!: Table<GeneratedDoc>;
   obligationChecks!: Table<ObligationCheck>;
+  auditLog!: Table<AuditEntry>;
 
   constructor() {
     super('aicomply');
@@ -73,6 +75,17 @@ class ComplianceDB extends Dexie {
       generatedDocs: '++id, templateType',
       obligationChecks: '++id, [category+obligationIndex]',
     });
+    this.version(5).stores({
+      companyProfile: '++id',
+      aiSystems: '++id, name, riskCategory, status',
+      vendors: '++id, name, dueDiligenceStatus',
+      tasks: '++id, status, priority, relatedSystemId, taskType, [relatedSystemId+taskType]',
+      incidents: '++id, status, severity, relatedSystemId',
+      trainingCompletions: '++id, moduleId, userName',
+      generatedDocs: '++id, templateType',
+      obligationChecks: '++id, [category+obligationIndex]',
+      auditLog: '++id, action, entity, timestamp',
+    });
   }
 }
 
@@ -104,6 +117,21 @@ export async function saveCompanyProfile(profile: Partial<CompanyProfile>): Prom
   }
 }
 
+export async function addAuditEntry(
+  action: AuditEntry['action'],
+  entity: string,
+  details: string,
+  entityId?: number,
+): Promise<void> {
+  await db.auditLog.add({
+    action,
+    entity,
+    entityId,
+    details,
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export async function exportAllData(): Promise<string> {
   const data = {
     companyProfile: await db.companyProfile.toArray(),
@@ -114,6 +142,7 @@ export async function exportAllData(): Promise<string> {
     trainingCompletions: await db.trainingCompletions.toArray(),
     generatedDocs: await db.generatedDocs.toArray(),
     obligationChecks: await db.obligationChecks.toArray(),
+    auditLog: await db.auditLog.toArray(),
     exportedAt: new Date().toISOString(),
     version: '2.0.0',
   };
@@ -129,6 +158,7 @@ const EXPECTED_TABLES = [
   'trainingCompletions',
   'generatedDocs',
   'obligationChecks',
+  'auditLog',
 ] as const;
 
 function validateImportPayload(data: unknown): asserts data is Record<string, unknown[]> {
@@ -164,6 +194,29 @@ export async function importData(json: string): Promise<void> {
       await db.trainingCompletions.bulkAdd(data.trainingCompletions as TrainingCompletion[]);
     if (data.generatedDocs) await db.generatedDocs.bulkAdd(data.generatedDocs as GeneratedDoc[]);
     if (data.obligationChecks) await db.obligationChecks.bulkAdd(data.obligationChecks as ObligationCheck[]);
+    if (data.auditLog) await db.auditLog.bulkAdd(data.auditLog as AuditEntry[]);
+  });
+}
+
+export async function deleteSystemCascade(systemId: number): Promise<void> {
+  await db.transaction('rw', [db.aiSystems, db.tasks, db.incidents, db.vendors, db.auditLog], async () => {
+    const deletedTasks = await db.tasks.where('relatedSystemId').equals(systemId).count();
+    await db.tasks.where('relatedSystemId').equals(systemId).delete();
+    const deletedIncidents = await db.incidents.where('relatedSystemId').equals(systemId).count();
+    await db.incidents.where('relatedSystemId').equals(systemId).delete();
+    await db.vendors.toCollection().modify((v: Vendor) => {
+      v.aiSystemIds = v.aiSystemIds.filter((id) => id !== systemId);
+    });
+    await db.aiSystems.delete(systemId);
+
+    const now = new Date().toISOString();
+    await db.auditLog.add({
+      action: 'delete',
+      entity: 'aiSystem',
+      entityId: systemId,
+      details: `Cascade deleted system ${systemId} with ${deletedTasks} task(s) and ${deletedIncidents} incident(s).`,
+      timestamp: now,
+    });
   });
 }
 

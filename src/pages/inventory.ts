@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { db, addAuditEntry, deleteSystemCascade } from '../db';
 import type { AISystem, PageModule } from '../types';
 import {
   DATA_CATEGORIES,
@@ -14,6 +14,7 @@ import { generateTasksForSystem } from '../services/taskGenerator';
 import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
+import { maxLength } from '../utils/validate';
 
 /* ── Helpers ── */
 
@@ -33,8 +34,8 @@ function statusLabel(status: string): string {
 
 /* ── Render: list view ── */
 
-function renderTable(): string {
-  if (systems.length === 0) {
+function renderFilteredTable(list: AISystem[]): string {
+  if (list.length === 0) {
     return `
       <div class="empty-state">
         <h3>No AI Systems Registered</h3>
@@ -43,7 +44,7 @@ function renderTable(): string {
     `;
   }
 
-  const rows = systems
+  const rows = list
     .map(
       (s) => `
       <tr>
@@ -78,6 +79,32 @@ function renderTable(): string {
       </table>
     </div>
   `;
+}
+
+function bindTableActions(list: AISystem[]): void {
+  const tableWrap = document.querySelector('#inventory-table-container');
+  if (!tableWrap) return;
+
+  tableWrap.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      const action = btn.dataset.action;
+      const system = list.find((s) => s.id === id);
+      if (!system) return;
+
+      switch (action) {
+        case 'view':
+          openSystemCard(system);
+          break;
+        case 'edit':
+          openWizard(system);
+          break;
+        case 'delete':
+          confirmDelete(system);
+          break;
+      }
+    });
+  });
 }
 
 /* ── Render: stepper ── */
@@ -378,6 +405,19 @@ function openWizard(existing?: AISystem): void {
         showToast('Name is required.', 'error');
         return;
       }
+      const nameVal = nameInput.value.trim();
+      const nameLenErr = maxLength(nameVal, 200, 'Name');
+      if (nameLenErr) {
+        showToast(nameLenErr, 'warning');
+        return;
+      }
+      const descInput = modal.querySelector<HTMLTextAreaElement>('#wiz-description');
+      const descVal = descInput?.value.trim() ?? '';
+      const descLenErr = maxLength(descVal, 2000, 'Description');
+      if (descLenErr) {
+        showToast(descLenErr, 'warning');
+        return;
+      }
     }
 
     if (currentStep < totalSteps - 1) {
@@ -410,6 +450,7 @@ function openWizard(existing?: AISystem): void {
       if (isEdit && existing!.id) {
         system.id = existing!.id;
         await db.aiSystems.put(system);
+        await addAuditEntry('update', 'aiSystem', 'Updated AI system: ' + system.name, existing!.id);
         const tasksCreated = await generateTasksForSystem(system);
         showToast(
           `AI system updated and re-classified.${tasksCreated > 0 ? ` ${tasksCreated} new task(s) created.` : ''}`,
@@ -417,6 +458,7 @@ function openWizard(existing?: AISystem): void {
         );
       } else {
         system.id = await db.aiSystems.add(system);
+        await addAuditEntry('create', 'aiSystem', 'Created AI system: ' + system.name, system.id);
         const tasksCreated = await generateTasksForSystem(system);
         showToast(
           `AI system added and classified.${tasksCreated > 0 ? ` ${tasksCreated} task(s) created.` : ''}`,
@@ -574,7 +616,7 @@ async function confirmDelete(system: AISystem): Promise<void> {
   modal.querySelector('#del-confirm')?.addEventListener('click', async () => {
     try {
       if (system.id) {
-        await db.aiSystems.delete(system.id);
+        await deleteSystemCascade(system.id);
         showToast(`"${system.name}" deleted.`, 'success');
       }
       closeModal();
@@ -590,35 +632,17 @@ async function confirmDelete(system: AISystem): Promise<void> {
 async function loadAndRender(): Promise<void> {
   systems = await db.aiSystems.toArray();
 
-  const container = document.getElementById('inventory-table-container');
-  if (container) {
-    container.innerHTML = renderTable();
+  const searchInput = document.getElementById('inventory-search') as HTMLInputElement | null;
+  if (searchInput) {
+    searchInput.value = '';
   }
 
-  /* Bind row action buttons */
-  const tableWrap = document.querySelector('#inventory-table-container');
-  if (!tableWrap) return;
+  const container = document.getElementById('inventory-table-container');
+  if (container) {
+    container.innerHTML = renderFilteredTable(systems);
+  }
 
-  tableWrap.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = Number(btn.dataset.id);
-      const action = btn.dataset.action;
-      const system = systems.find((s) => s.id === id);
-      if (!system) return;
-
-      switch (action) {
-        case 'view':
-          openSystemCard(system);
-          break;
-        case 'edit':
-          openWizard(system);
-          break;
-        case 'delete':
-          confirmDelete(system);
-          break;
-      }
-    });
-  });
+  bindTableActions(systems);
 }
 
 /* ── Exported page module ── */
@@ -632,6 +656,9 @@ const inventoryPage: PageModule = {
           <button class="btn btn-primary" id="btn-add-system">Add AI System</button>
         </div>
         <div class="card">
+          <div style="margin-bottom:16px">
+            <input class="form-input" id="inventory-search" type="search" placeholder="Search systems..." />
+          </div>
           <div id="inventory-table-container"></div>
         </div>
       </div>
@@ -643,6 +670,22 @@ const inventoryPage: PageModule = {
 
     document.getElementById('btn-add-system')?.addEventListener('click', () => {
       openWizard();
+    });
+
+    document.getElementById('inventory-search')?.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+      const container = document.getElementById('inventory-table-container');
+      if (!container) return;
+      const filtered = query
+        ? systems.filter(
+            (s) =>
+              s.name.toLowerCase().includes(query) ||
+              s.description.toLowerCase().includes(query) ||
+              s.department.toLowerCase().includes(query),
+          )
+        : systems;
+      container.innerHTML = renderFilteredTable(filtered);
+      bindTableActions(filtered);
     });
   },
 };

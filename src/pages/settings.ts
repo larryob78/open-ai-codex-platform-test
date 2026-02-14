@@ -1,6 +1,7 @@
-import { getCompanyProfile, saveCompanyProfile, wipeAllData } from '../db';
+import { getCompanyProfile, saveCompanyProfile, wipeAllData, addAuditEntry } from '../db';
 import type { CompanyProfile } from '../types';
 import { showToast } from '../components/toast';
+import { isValidEmail, maxLength } from '../utils/validate';
 
 /* ── Render ── */
 
@@ -58,6 +59,30 @@ function render(): string {
 
           <button class="btn btn-primary" type="submit" id="profile-save-btn">Save</button>
         </form>
+      </div>
+
+      <!-- Theme -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Appearance</h2>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Theme</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="radio" name="theme-pref" value="system" checked />
+              System
+            </label>
+            <label class="checkbox-label">
+              <input type="radio" name="theme-pref" value="light" />
+              Light
+            </label>
+            <label class="checkbox-label">
+              <input type="radio" name="theme-pref" value="dark" />
+              Dark
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Data Storage -->
@@ -120,6 +145,13 @@ function getSelect(id: string): HTMLSelectElement {
   return document.getElementById(id) as HTMLSelectElement;
 }
 
+function applyTheme(pref: string): void {
+  const root = document.documentElement;
+  root.classList.remove('theme-light', 'theme-dark');
+  if (pref === 'light') root.classList.add('theme-light');
+  else if (pref === 'dark') root.classList.add('theme-dark');
+}
+
 /* ── Init ── */
 
 async function init(): Promise<void> {
@@ -134,6 +166,22 @@ async function init(): Promise<void> {
     if (countryInput) countryInput.value = 'Ireland';
   }
 
+  // ── Theme toggle ──
+
+  const savedTheme = localStorage.getItem('theme-preference') || 'system';
+  applyTheme(savedTheme);
+
+  const themeRadios = document.querySelectorAll<HTMLInputElement>('input[name="theme-pref"]');
+  themeRadios.forEach((radio) => {
+    if (radio.value === savedTheme) radio.checked = true;
+    radio.addEventListener('change', () => {
+      if (radio.checked) {
+        localStorage.setItem('theme-preference', radio.value);
+        applyTheme(radio.value);
+      }
+    });
+  });
+
   // ── Save profile ──
 
   const form = document.getElementById('settings-profile-form') as HTMLFormElement | null;
@@ -147,8 +195,19 @@ async function init(): Promise<void> {
     }
 
     try {
+      const companyName = getInput('profile-name').value.trim();
+      const nameLenErr = maxLength(companyName, 200, 'Company name');
+      if (nameLenErr) {
+        showToast(nameLenErr, 'warning');
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+        return;
+      }
+
       const dpoEmail = getInput('profile-dpo-email').value.trim();
-      if (dpoEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dpoEmail)) {
+      if (dpoEmail && !isValidEmail(dpoEmail)) {
         showToast('Please enter a valid DPO email address.', 'warning');
         if (saveBtn) {
           saveBtn.disabled = false;
@@ -158,7 +217,7 @@ async function init(): Promise<void> {
       }
 
       const profile: Partial<CompanyProfile> = {
-        name: getInput('profile-name').value.trim(),
+        name: companyName,
         sector: getInput('profile-sector').value.trim(),
         country: getInput('profile-country').value.trim() || 'Ireland',
         employeeCount: getSelect('profile-employee-count').value,
@@ -167,6 +226,7 @@ async function init(): Promise<void> {
       };
 
       await saveCompanyProfile(profile);
+      await addAuditEntry('update', 'profile', 'Saved company profile: ' + companyName);
       showToast('Company profile saved.', 'success');
     } catch {
       showToast('Failed to save profile.', 'error');

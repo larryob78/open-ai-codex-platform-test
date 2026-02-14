@@ -1,219 +1,363 @@
-# Production-Grade Upgrade Plan
+# Production Hardening Plan - Phase 2
 
 **Repository:** `larryob78/open-ai-codex-platform-test`
 **Branch:** `claude/ai-compliance-ui-WG5US`
-**Baseline:** 22 tests passing, build clean, format clean, TypeScript clean
+**Baseline:** 47 tests passing, build clean, format clean, TypeScript clean
+**Goal:** Raise product readiness from 6.5/10 to 8+/10
 
 ---
 
-## Milestone 1: Security Hardening - Unified XSS Escape
+## Milestone 1: Content Security Policy + Security Headers
 
-**Problem:** 6 page files define local `escapeHtml()` that omit single-quote escaping (`'` -> `&#39;`). Only `dashboard.ts` and `risk.ts` import the shared utility. Additionally, `router.ts:30` injects `${String(err)}` into innerHTML unescaped.
-
-**Files to modify:**
-- `src/pages/inventory.ts` - line 33-37: delete local `escapeHtml()`, add `import { escapeHtml } from '../utils/escapeHtml';`
-- `src/pages/vendors.ts` - line 8-10: delete local, add import
-- `src/pages/templates.ts` - line 10-12: delete local, add import
-- `src/pages/training.ts` - line 7-9: delete local, add import
-- `src/pages/incidents.ts` - line 9-11: delete local, add import
-- `src/pages/obligations.ts` - line 125-127: delete local, add import
-- `src/router.ts` - line 30: escape `String(err)` using imported `escapeHtml`
-
-**Acceptance criteria:**
-- `grep -r "function escapeHtml" src/pages/` returns zero results
-- All 7 files import from `../utils/escapeHtml`
-- Router error path XSS is eliminated
-- Build passes, all existing tests pass
-
----
-
-## Milestone 2: Security Hardening - Template Markdown Injection
-
-**Problem:** `templateGen.ts` interpolates user data (system names, descriptions, vendor names, DPO details) directly into markdown strings. A system named `| DROP TABLE |` or `[evil](javascript:alert(1))` would break markdown table structure or inject links.
+**Problem:** `index.html` has no CSP meta tag. The app uses `innerHTML` extensively, making it vulnerable to injected inline scripts. No referrer policy, no X-Frame-Options equivalent.
 
 **Files to modify:**
-- `src/utils/escapeHtml.ts` - add exported `escapeMarkdown(str)` function that escapes `|`, `[`, `]`, `(`, `)`, `*`, `_`, `` ` ``, `#`, `~`
-- `src/services/templateGen.ts` - import `escapeMarkdown`, use it in `systemInventoryTable()` and `vendorSection()` for all interpolated user values (system.name, system.owner, system.description, vendor.name, vendor.contact, profile.dpoName, profile.dpoEmail, companyName)
+- `index.html` - add CSP meta tag and referrer policy
+
+**Changes:**
+- Add `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';">` - allows the inline SVG favicon and inline styles but blocks external scripts
+- Add `<meta name="referrer" content="strict-origin-when-cross-origin" />`
 
 **Acceptance criteria:**
-- New test in `src/tests/escapeHtml.test.ts` verifying `escapeMarkdown()` escapes pipe characters and brackets
+- CSP blocks external script injection
+- App still functions (styles, favicon, JS all load)
 - Build passes
 
 ---
 
-## Milestone 3: Bug Fixes
+## Milestone 2: Error Boundary + Route Recovery
 
-**3a: Training module `&amp;` double-encoding**
-- `src/pages/training.ts` lines 30, 89: Replace `&amp;` with `&` in module titles. Lines 252, 258 that manually decode `&amp;` back to `&` can then be simplified to use `mod.title` directly.
+**Problem:** If `page.render()` or `page.init()` throws, the user sees a raw error string with no way to recover. No Escape key handler on modals. No global unhandled rejection handler.
 
-**3b: Templates `.reverse().sortBy()` bug**
-- `src/pages/templates.ts` line 204: Dexie's `.sortBy()` re-sorts ignoring prior `.reverse()`. Fix: use `.sortBy('createdAt')` then `docs.reverse()` on the result array, or use `.orderBy('createdAt').reverse().toArray()`.
+**Files to modify:**
+- `src/router.ts` - add error boundary with retry button, add global error handler
+- `src/components/modal.ts` - add Escape key to close modal
+- `src/main.ts` - add `window.onerror` and `unhandledrejection` handlers that show toast
 
-**3c: `taskGenerator.ts` date math across year boundary**
-- `src/services/taskGenerator.ts` line 22-26: `setMonth()` with large negative values can produce wrong dates (e.g., subtracting 6 months from Jan gives July of prior year but day may overflow). Replace with explicit calculation: decrement year when months go negative, or use `d.setDate(1)` before `setMonth` to avoid day overflow.
+**Changes in router.ts:**
+- Error catch renders a card with "Something went wrong", the escaped error, and a "Reload Page" button + "Go to Dashboard" link
+- Add `window.addEventListener('unhandledrejection', ...)` in bootstrap that shows an error toast
 
-**3d: Import data `JSON.parse` uncaught**
-- `src/db/index.ts` line 100: `JSON.parse(json)` is not in a try-catch. If the file is malformed, it throws a raw SyntaxError. Wrap in try-catch and throw a user-friendly error: `"Invalid backup file: not valid JSON."`
-
-**3e: `incidents.ts` uses `window.confirm()`**
-- `src/pages/incidents.ts` line 331: Replace `window.confirm()` with the same modal-based confirmation pattern used by `inventory.ts:confirmDelete()` and `vendors.ts:confirmDeleteVendor()`.
+**Changes in modal.ts:**
+- Add `keydown` listener for Escape key that calls `closeModal()`
+- Clean up listener on modal close
 
 **Acceptance criteria:**
-- Training titles contain `&` not `&amp;`
-- Templates "View Saved" shows most-recent document (not random order)
-- `monthsBefore('2025-01-15', 6)` returns `'2024-07-15'` (not an incorrect date)
-- Malformed JSON import shows "not valid JSON" toast, not raw error
-- Incident delete uses modal confirmation
+- Route error shows recovery UI with buttons
+- Escape key closes any open modal
+- Unhandled promise rejections show error toast instead of silently failing
 - Build passes, all tests pass
 
 ---
 
-## Milestone 4: Data Model Upgrade
+## Milestone 3: Structured Logging + Audit Trail
+
+**Problem:** Only `console.error` exists. A compliance tool must track who changed what and when. No audit trail for regulatory inspections.
+
+**Files to create:**
+- `src/utils/logger.ts` - structured logging utility
 
 **Files to modify:**
-- `src/types/index.ts`:
-  - Add `createdAt: string` to `CompanyProfile` interface (line 11, before `updatedAt`)
-  - Make `Task.taskType` non-optional (change `taskType?: string` to `taskType: string` at line 60)
-- `src/db/index.ts`:
-  - Add `version(3)` upgrade with a migration callback that:
-    - Sets `createdAt = updatedAt` on any existing `companyProfile` rows missing `createdAt`
-    - Sets `taskType = 'manual'` on any existing `tasks` rows where `taskType` is undefined
-  - Schema for v3 same indexes as v2 (no new indexes needed)
-- `src/services/taskGenerator.ts`:
-  - Remove optional chaining on `taskType` filter (line 164: `.filter(Boolean)` no longer needed)
-- `src/pages/dashboard.ts`:
-  - Task creation for manual tasks (if any future feature adds them) must include `taskType: 'manual'`
+- `src/types/index.ts` - add `AuditEntry` interface
+- `src/db/index.ts` - add `auditLog` table in v5 migration, add to export/import
+- `src/router.ts` - replace `console.error` with logger
+- `src/pages/inventory.ts` - log system create/update/delete
+- `src/pages/incidents.ts` - log incident create/update/delete
+- `src/pages/settings.ts` - log profile save
+- `src/pages/tasks.ts` - log task create/update/delete/status change
+- `src/pages/vendors.ts` - log vendor create/update/delete
 
-**Schema change:**
+**Logger API:**
 ```typescript
-this.version(3).stores({
-  // same indexes as v2
-}).upgrade(tx => {
-  tx.table('companyProfile').toCollection().modify(p => {
-    if (!p.createdAt) p.createdAt = p.updatedAt || new Date().toISOString();
-  });
-  tx.table('tasks').toCollection().modify(t => {
-    if (!t.taskType) t.taskType = 'manual';
-  });
+// src/utils/logger.ts
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  context?: Record<string, unknown>;
+  timestamp: string;
+}
+
+export const logger = {
+  debug(msg: string, ctx?: Record<string, unknown>): void,
+  info(msg: string, ctx?: Record<string, unknown>): void,
+  warn(msg: string, ctx?: Record<string, unknown>): void,
+  error(msg: string, ctx?: Record<string, unknown>): void,
+};
+```
+
+**AuditEntry type:**
+```typescript
+interface AuditEntry {
+  id?: number;
+  action: 'create' | 'update' | 'delete' | 'status-change' | 'import' | 'export';
+  entity: string;     // 'aiSystem' | 'vendor' | 'task' | 'incident' | 'profile'
+  entityId?: number;
+  details: string;
+  timestamp: string;
+}
+```
+
+**Audit log calls (examples):**
+- `inventory.ts` save: `await db.auditLog.add({ action: 'create', entity: 'aiSystem', entityId: id, details: 'Created AI system: ' + name, timestamp: now })`
+- `tasks.ts` status change: `await db.auditLog.add({ action: 'status-change', entity: 'task', entityId: id, details: 'Moved from pending to in-progress', timestamp: now })`
+
+**Acceptance criteria:**
+- Logger utility with 4 levels, outputs to console in dev
+- Audit entries persisted to IndexedDB on all CRUD operations
+- Audit log included in JSON backup/restore
+- Build passes, all tests pass
+
+---
+
+## Milestone 4: Input Validation Hardening
+
+**Problem:** Form inputs are only `.trim()`'d. No length limits, no enum validation, no special character blocking. Email regex is weak.
+
+**Files to create:**
+- `src/utils/validate.ts` - shared validation functions
+
+**Files to modify:**
+- `src/pages/settings.ts` - use validators for profile fields
+- `src/pages/inventory.ts` - use validators for system fields
+- `src/pages/vendors.ts` - use validators for vendor fields
+- `src/pages/incidents.ts` - use validators for incident fields
+- `src/pages/tasks.ts` - use validators for task fields
+
+**Validation functions:**
+```typescript
+// src/utils/validate.ts
+export function isValidEmail(email: string): boolean  // RFC-compliant regex
+export function isNonEmpty(val: string, fieldName: string): string | null  // returns error or null
+export function maxLength(val: string, max: number, fieldName: string): string | null
+export function isValidDate(val: string): boolean  // ISO date format
+export function isOneOf<T extends string>(val: string, allowed: T[], fieldName: string): string | null
+```
+
+**Validation pattern in pages:**
+```typescript
+const errors: string[] = [];
+const nameErr = maxLength(name, 200, 'Name');
+if (nameErr) errors.push(nameErr);
+if (!isNonEmpty(name, 'Name')) errors.push('Name is required');
+if (errors.length > 0) {
+  showToast(errors[0], 'warning');
+  return;
+}
+```
+
+**Acceptance criteria:**
+- All form inputs validate: required fields, max length (200 for names, 2000 for descriptions), valid email, valid date
+- Enum fields (status, priority, severity, deploymentType) validated against allowed values
+- Validation errors show as warning toasts
+- Tests for all validation functions
+- Build passes
+
+---
+
+## Milestone 5: Audit Log Viewer Page
+
+**Problem:** Audit log entries from Milestone 3 need a UI for viewing. Compliance officers need to review change history.
+
+**Files to create:**
+- `src/pages/audit.ts` - audit log viewer page
+
+**Files to modify:**
+- `src/main.ts` - register `/audit` route
+- `src/components/nav.ts` - add Audit Log nav item (after Task Board, before Exports)
+
+**Page features:**
+- Table displaying audit entries: Timestamp, Action, Entity, Details
+- Sorted newest first
+- Filter buttons: All | Creates | Updates | Deletes
+- "Export Audit Log" button that downloads CSV
+- Empty state: "No audit entries yet."
+
+**Acceptance criteria:**
+- Audit log page renders table of entries
+- Filters work
+- CSV export works
+- Nav item appears in sidebar
+- Build passes
+
+---
+
+## Milestone 6: Search and Filtering
+
+**Problem:** No search on inventory, tasks, vendors, or incidents pages. Users with 50+ systems have no way to find specific items.
+
+**Files to modify:**
+- `src/pages/inventory.ts` - add search bar filtering by system name/description/vendor
+- `src/pages/tasks.ts` - add filter bar for priority and status on kanban board
+- `src/pages/vendors.ts` - add search bar filtering by vendor name
+- `src/pages/incidents.ts` - add search bar and severity/status filter
+
+**Pattern:**
+```html
+<div class="search-bar">
+  <input class="form-input" id="search-{page}" type="search" placeholder="Search..." />
+</div>
+```
+
+```typescript
+searchInput?.addEventListener('input', () => {
+  const query = searchInput.value.toLowerCase().trim();
+  // Filter displayed items, re-render table/cards
 });
 ```
 
 **Acceptance criteria:**
-- TypeScript compiles with `taskType: string` (not optional)
-- Existing v2 databases upgrade cleanly to v3
+- Inventory: search filters systems by name, description, or vendor
+- Tasks: dropdown filters by priority (all/high/medium/low)
+- Vendors: search by name
+- Incidents: search by title, filter by severity dropdown
+- Searches are instant (client-side filter on already-loaded data)
 - Build passes
 
 ---
 
-## Milestone 5: Task Engine Hardening
+## Milestone 7: Accessibility Hardening
+
+**Problem:** Missing skip-to-content link, SVG nav icons lack aria-labels, no screen reader announcements for dynamic content changes.
 
 **Files to modify:**
-- `src/services/taskGenerator.ts`:
-  - Remove non-null assertion `system.id!` at line 162. Add guard: `if (system.id === undefined) return 0;`
-  - Use compound index query instead of full-table scan: replace `db.tasks.where('relatedSystemId').equals(systemId).toArray()` with `db.tasks.where('[relatedSystemId+taskType]').between([systemId, Dexie.minKey], [systemId, Dexie.maxKey]).toArray()` for efficient dedup lookup
-  - Add `owner` field to generated tasks (default empty string `''`)
-- `src/tests/smoke.test.ts`:
-  - Add test for `monthsBefore()` edge case (export the function for testing, or test indirectly through task template dates)
+- `index.html` - add skip-to-content link
+- `src/style.css` - add `.sr-only` and `.skip-link` classes
+- `src/components/nav.ts` - add `aria-label` to all nav links (using the label text)
+- `src/components/toast.ts` - add `role="alert"` and `aria-live="assertive"` to toast container
+- `src/components/modal.ts` - add `role="dialog"`, `aria-modal="true"`, `aria-labelledby` to modal, add focus trap
+
+**Changes:**
+- Skip link: `<a href="#app-content" class="skip-link">Skip to main content</a>` as first child of `<body>`
+- `.skip-link` CSS: visually hidden, visible on `:focus`
+- `.sr-only` CSS: screen-reader-only utility class
+- Nav icons: wrap icon span with `aria-hidden="true"`, rely on nav label text
+- Toast: add `role="status"` to `#toast-container`, `role="alert"` to individual toasts
+- Modal: focus first focusable element on open, return focus to trigger on close
 
 **Acceptance criteria:**
-- No non-null assertions (`!`) on `system.id`
-- Build passes, new tests pass
-
----
-
-## Milestone 6: Template Engine Upgrade
-
-**Files to modify:**
-- `src/services/templateGen.ts`:
-  - Add 2 new templates:
-    1. `data-processing-record` - "Record of AI Processing Activities" - includes system inventory table, data categories per system, lawful basis placeholder, GDPR Art. 30 reference
-    2. `risk-assessment-template` - "AI Risk Assessment Report" - one section per registered system with risk category, reasoning, recommended actions, completeness score
-  - Both use `escapeMarkdown()` for user data
-- `src/pages/templates.ts`:
-  - No changes needed (templates auto-populate from `TEMPLATES` array)
-
-**Acceptance criteria:**
-- 8 templates total (6 existing + 2 new)
-- New templates include real inventory data
+- Tab from page top focuses skip link first
+- Screen readers announce toasts
+- Modal traps focus within itself
+- Nav icons hidden from screen readers
 - Build passes
 
 ---
 
-## Milestone 7: Timeline Widget Enhancements
+## Milestone 8: Deletion Cascading + Data Integrity
+
+**Problem:** Deleting an AI system leaves orphaned tasks, incidents, and generated docs referencing that system's ID. No referential integrity.
 
 **Files to modify:**
-- `src/pages/dashboard.ts`:
-  - Add a progress indicator showing how many of the 4 milestones have passed
-  - Add `aria-label` attributes to timeline status badges for accessibility
-  - Sources modal: add link text "View full text on EUR-Lex" pointing to the EUR-Lex URL (already in the modal but as plain text)
+- `src/pages/inventory.ts` - cascade delete related tasks and incidents when a system is deleted
+- `src/pages/vendors.ts` - clean up `aiSystemIds` references when a system is deleted (already somewhat handled, but verify)
+- `src/db/index.ts` - add helper `deleteSystemCascade(id: number)` that deletes related tasks, incidents, and updates vendor references in a transaction
+
+**Cascade helper:**
+```typescript
+export async function deleteSystemCascade(systemId: number): Promise<void> {
+  await db.transaction('rw', [db.aiSystems, db.tasks, db.incidents, db.vendors], async () => {
+    await db.tasks.where('relatedSystemId').equals(systemId).delete();
+    await db.incidents.where('relatedSystemId').equals(systemId).delete();
+    await db.vendors.toCollection().modify(v => {
+      v.aiSystemIds = v.aiSystemIds.filter(id => id !== systemId);
+    });
+    await db.aiSystems.delete(systemId);
+  });
+}
+```
 
 **Acceptance criteria:**
-- Progress indicator shows e.g. "1 of 4 milestones in effect"
-- Badge has aria-label like "2 February 2025 - In effect"
+- Deleting a system also deletes its tasks and incidents
+- Vendor `aiSystemIds` arrays are cleaned up
+- All operations happen in a single transaction (atomic)
+- Audit log entries created for cascade deletions
+- Build passes, tests pass
+
+---
+
+## Milestone 9: Integration Tests for DB Operations
+
+**Problem:** 47 unit tests cover business logic but zero tests cover database operations - migrations, backup/restore, cascade deletes.
+
+**Files to create:**
+- `src/tests/db.test.ts` - database integration tests using Dexie's in-memory adapter
+- `src/tests/validate.test.ts` - validation function unit tests
+
+**Tests to write:**
+
+**db.test.ts (10+ tests):**
+- `saveCompanyProfile` creates profile with createdAt
+- `saveCompanyProfile` updates existing profile
+- `exportAllData` includes all tables
+- `importData` restores all tables
+- `importData` rejects invalid JSON
+- `importData` rejects non-object payload
+- `deleteSystemCascade` removes system, tasks, and incidents
+- `deleteSystemCascade` cleans vendor aiSystemIds
+- Audit log entries are created on CRUD operations
+
+**validate.test.ts (10+ tests):**
+- `isValidEmail` accepts valid emails
+- `isValidEmail` rejects invalid emails
+- `isNonEmpty` returns error for empty strings
+- `maxLength` returns error when exceeded
+- `isValidDate` accepts ISO dates
+- `isValidDate` rejects invalid dates
+- `isOneOf` accepts valid enum values
+- `isOneOf` rejects invalid values
+
+**Target:** 67+ tests (up from 47)
+
+**Acceptance criteria:**
+- All new tests pass
+- DB tests verify actual Dexie operations
+- Validation tests cover edge cases
 - Build passes
 
 ---
 
-## Milestone 8: Testing Strategy
+## Milestone 10: Polish - Dark Mode Support
 
-**New tests to add in `src/tests/`:**
-
-**File: `src/tests/escapeHtml.test.ts` (extend)**
-- Test `escapeMarkdown()` escapes pipes, brackets, backticks
-
-**File: `src/tests/smoke.test.ts` (extend)**
-- Test `monthsBefore()` across year boundary
-- Test classifier with all-empty system (completeness = 0%)
-- Test classifier with prohibited + incomplete system (confidence = low)
-
-**File: `src/tests/taskGenerator.test.ts` (new)**
-- Test the `TASK_TEMPLATES` data structure directly (no mock needed):
-  - `TASK_TEMPLATES['minimal-risk']` has 3 entries
-  - `TASK_TEMPLATES['high-risk']` has 7 entries
-  - `TASK_TEMPLATES['prohibited']` has 2 entries
-  - `TASK_TEMPLATES['unknown']` has 0 entries
-  - Each template has required fields (taskType, title, description, priority, suggestedDueDate)
-
-**File: `src/tests/templateGen.test.ts` (new)**
-- Test each template's `generate()` function produces non-empty output
-- Test that templates include company name in output
-- Test that templates handle empty systems/vendors arrays
-
-**Target:** 35+ tests (up from 22)
-
-**Acceptance criteria:**
-- All tests pass
-- Coverage of critical paths: escaping, classification, task generation, template generation
-
----
-
-## Milestone 9: Code Quality Cleanup
+**Problem:** No dark mode. Many users and compliance officers work in low-light environments.
 
 **Files to modify:**
-- `src/pages/dashboard.ts`: Extract duplicate sort logic in `init()` and `refreshTaskList()` into a shared `sortTasksByPriority()` helper
-- `src/pages/risk.ts`: Extract duplicate `counts` computation (lines 221-234 and 317-329) into helper function
-- `src/pages/settings.ts`: Validate DPO email format before save (basic regex check, show toast if invalid)
-- All pages: Ensure no stale closures - verify that event handlers referencing arrays (like `allSystems`, `vendors`) are re-attached after data refreshes (already done in most cases, verify `obligations.ts` checkbox handlers)
+- `src/style.css` - add `@media (prefers-color-scheme: dark)` with dark color variables
+- `src/pages/settings.ts` - add theme toggle (system/light/dark) saved in localStorage
+
+**CSS changes:**
+- Define dark variants of all CSS variables under `@media (prefers-color-scheme: dark)` and `.theme-dark` class
+- Key dark values: `--c-bg: #0f172a`, `--c-surface: #1e293b`, `--c-text: #e2e8f0`, `--c-border: #334155`
+- Cards, inputs, tables, modals all adapt via CSS variables
+- Kanban cards get dark backgrounds
+
+**Settings toggle:**
+- 3-option radio: System (default) | Light | Dark
+- Saved to `localStorage.getItem('theme-preference')`
+- Applied via `document.documentElement.classList.add('theme-dark')` or `.theme-light`
 
 **Acceptance criteria:**
-- No duplicate logic blocks
-- DPO email validation on settings page
-- Build passes, format:check passes
+- Dark mode activates automatically based on OS preference
+- Manual toggle in Settings overrides OS preference
+- All pages readable in dark mode
+- Kanban board, modals, toasts, tables all styled
+- Build passes
 
 ---
 
 ## Execution Order
 
 ```
-Milestone 1  (Security - unified escapeHtml)
-Milestone 2  (Security - markdown escaping)
-Milestone 3  (Bug fixes - 5 items)
-Milestone 4  (Data model + Dexie v3 migration)
-Milestone 5  (Task engine hardening)
-Milestone 6  (2 new templates)
-Milestone 7  (Timeline widget enhancements)
-Milestone 8  (Testing - 13+ new tests)
-Milestone 9  (Code quality cleanup)
+Milestone 1   (CSP + security headers)
+Milestone 2   (Error boundary + modal Escape key)
+Milestone 3   (Structured logging + audit trail)
+Milestone 4   (Input validation hardening)
+Milestone 5   (Audit log viewer page)
+Milestone 6   (Search and filtering)
+Milestone 7   (Accessibility hardening)
+Milestone 8   (Deletion cascading + data integrity)
+Milestone 9   (Integration + validation tests)
+Milestone 10  (Dark mode)
 ```
 
 ## Verification Commands (run after each milestone)
@@ -230,9 +374,9 @@ npm run format:check      # Prettier clean
 - No backend, no accounts, no external services
 - All data stays in browser (IndexedDB via Dexie.js)
 - No em dashes anywhere
-- No UX redesign
-- "Not legal advice" disclaimer visible
-- EU AI Act timeline references official sources (Regulation (EU) 2024/1689, Art. 113)
+- No UX redesign - enhancements build on existing patterns
+- "Not legal advice" disclaimer visible on every page
+- EU AI Act timeline references official sources
 
 ---
 

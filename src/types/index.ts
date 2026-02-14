@@ -106,6 +106,15 @@ export interface ObligationCheck {
   checked: boolean;
 }
 
+export interface AuditEntry {
+  id?: number;
+  action: 'create' | 'update' | 'delete' | 'status-change' | 'import' | 'export';
+  entity: string;
+  entityId?: number;
+  details: string;
+  timestamp: string;
+}
+
 /* ── Risk classification types ── */
 
 export type RiskCategory = 'prohibited' | 'high-risk' | 'limited-risk' | 'minimal-risk' | 'unknown';

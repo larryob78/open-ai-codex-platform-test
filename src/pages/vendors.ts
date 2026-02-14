@@ -1,8 +1,9 @@
-import { db } from '../db';
+import { db, addAuditEntry } from '../db';
 import type { Vendor } from '../types';
 import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
+import { maxLength } from '../utils/validate';
 
 function formatDate(iso: string): string {
   if (!iso) return '-';
@@ -101,6 +102,12 @@ function openVendorForm(existing?: Vendor): void {
       return;
     }
 
+    const nameLenErr = maxLength(name, 200, 'Vendor name');
+    if (nameLenErr) {
+      showToast(nameLenErr, 'warning');
+      return;
+    }
+
     const vendorData: Omit<Vendor, 'id'> = {
       name,
       contact: contactInput.value.trim(),
@@ -115,9 +122,11 @@ function openVendorForm(existing?: Vendor): void {
     try {
       if (isEdit && existing?.id !== undefined) {
         await db.vendors.update(existing.id, vendorData);
+        await addAuditEntry('update', 'vendor', 'Updated vendor: ' + name, existing.id);
         showToast('Vendor updated.', 'success');
       } else {
-        await db.vendors.add(vendorData as Vendor);
+        const newId = await db.vendors.add(vendorData as Vendor);
+        await addAuditEntry('create', 'vendor', 'Created vendor: ' + name, newId as number);
         showToast('Vendor added.', 'success');
       }
       closeModal();
@@ -151,6 +160,7 @@ function confirmDeleteVendor(vendor: Vendor): void {
     try {
       if (vendor.id !== undefined) {
         await db.vendors.delete(vendor.id);
+        await addAuditEntry('delete', 'vendor', 'Deleted vendor: ' + vendor.name, vendor.id);
         showToast(`"${vendor.name}" deleted.`, 'success');
       }
       closeModal();
@@ -254,6 +264,9 @@ function render(): string {
           <h2 class="card-title">Vendor Register</h2>
           <button class="btn btn-primary" id="add-vendor-btn">+ Add Vendor</button>
         </div>
+        <div style="margin-bottom:16px">
+          <input class="form-input" id="vendor-search" type="search" placeholder="Search vendors..." />
+        </div>
         <div id="vendor-table-container"></div>
       </div>
     </div>`;
@@ -268,6 +281,19 @@ async function init(): Promise<void> {
 
   // Load and render vendor table
   await refreshVendorTable();
+
+  document.getElementById('vendor-search')?.addEventListener('input', async (e) => {
+    const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+    const vendors = await db.vendors.toArray();
+    const filtered = query
+      ? vendors.filter((v) => v.name.toLowerCase().includes(query) || v.contact.toLowerCase().includes(query))
+      : vendors;
+    const container = document.getElementById('vendor-table-container');
+    if (container) {
+      container.innerHTML = renderVendorTable(filtered);
+      attachTableHandlers(filtered);
+    }
+  });
 }
 
 export default { render, init };
