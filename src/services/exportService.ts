@@ -1,6 +1,6 @@
 import { db, getCompanyProfile, exportAllData } from '../db';
 import { riskLabel } from './classifier';
-import type { AISystem, Vendor, Incident, TrainingCompletion } from '../types';
+import type { AISystem, Vendor, Incident, TrainingCompletion, Task } from '../types';
 
 /* ── CSV helpers ── */
 
@@ -72,6 +72,38 @@ export async function trainingLogCsv(): Promise<string> {
   return toCsv(
     ['Module ID', 'Module Name', 'User Name', 'Completed At'],
     completions.map((t: TrainingCompletion) => [t.moduleId, t.moduleName, t.userName, t.completedAt]),
+  );
+}
+
+export async function tasksCsv(): Promise<string> {
+  const tasks = await db.tasks.toArray();
+  return toCsv(
+    [
+      'ID',
+      'Title',
+      'Description',
+      'Category',
+      'Type',
+      'Owner',
+      'Priority',
+      'Status',
+      'Due Date',
+      'Completed At',
+      'Created',
+    ],
+    tasks.map((t: Task) => [
+      String(t.id ?? ''),
+      t.title,
+      t.description,
+      t.category,
+      t.taskType,
+      t.owner ?? '',
+      t.priority,
+      t.status,
+      t.dueDate,
+      t.completedAt ?? '',
+      t.createdAt,
+    ]),
   );
 }
 
@@ -175,6 +207,7 @@ export async function generateZip(): Promise<Blob> {
   zip.file('vendor-register.csv', await vendorRegisterCsv());
   zip.file('training-log.csv', await trainingLogCsv());
   zip.file('incident-log.csv', await incidentLogCsv());
+  zip.file('tasks.csv', await tasksCsv());
 
   // JSON snapshot
   zip.file('backup.json', await exportAllData());

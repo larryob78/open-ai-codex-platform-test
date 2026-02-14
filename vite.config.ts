@@ -10,4 +10,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
+  test: {
+    exclude: ['e2e/**', 'node_modules/**'],
+  },
 });

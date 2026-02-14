@@ -205,12 +205,12 @@ function renderAccordionSection(
 
   return `
     <div class="accordion-item">
-      <button class="accordion-btn" data-target="${sectionId}" aria-expanded="false">
+      <button class="accordion-btn" data-target="${sectionId}" aria-expanded="false" aria-controls="${sectionId}">
         <span class="badge ${badge}">${label}</span>
         <span>${label} Obligations (${obligations.length})</span>
         <span class="accordion-icon">&#9660;</span>
       </button>
-      <div class="accordion-body" id="${sectionId}" style="display:none;">
+      <div class="accordion-body" id="${sectionId}" role="region" aria-hidden="true" style="display:none;">
         ${renderSystemBadges(systems)}
         ${checklistItems}
       </div>
@@ -313,6 +313,7 @@ async function init(): Promise<void> {
       const isExpanded = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!isExpanded));
       body.style.display = isExpanded ? 'none' : 'block';
+      body.setAttribute('aria-hidden', String(isExpanded));
 
       const icon = btn.querySelector('.accordion-icon');
       if (icon) {
@@ -321,19 +322,28 @@ async function init(): Promise<void> {
     });
   }
 
-  // ── Persist checkbox state in sessionStorage ──
-  const checkboxes = contentEl.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+  // ── Persist checkbox state in IndexedDB ──
+  const checkboxes = contentEl.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-category]');
+  const existingChecks = await db.obligationChecks.toArray();
+  const checkedSet = new Set(existingChecks.filter((c) => c.checked).map((c) => `${c.category}-${c.obligationIndex}`));
+
   for (const cb of checkboxes) {
-    const key = `obligation-${cb.dataset.category ?? 'misc'}-${cb.dataset.index ?? cb.closest('.checklist-item')?.textContent?.trim().slice(0, 30)}`;
+    const category = cb.dataset.category ?? '';
+    const index = Number(cb.dataset.index ?? -1);
+    const key = `${category}-${index}`;
 
     // Restore state
-    const stored = sessionStorage.getItem(key);
-    if (stored === 'true') {
+    if (checkedSet.has(key)) {
       cb.checked = true;
     }
 
-    cb.addEventListener('change', () => {
-      sessionStorage.setItem(key, String(cb.checked));
+    cb.addEventListener('change', async () => {
+      const existing = await db.obligationChecks.where('[category+obligationIndex]').equals([category, index]).first();
+      if (existing?.id !== undefined) {
+        await db.obligationChecks.update(existing.id, { checked: cb.checked });
+      } else {
+        await db.obligationChecks.add({ category, obligationIndex: index, checked: cb.checked });
+      }
     });
   }
 }

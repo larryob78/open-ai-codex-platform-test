@@ -8,6 +8,7 @@ import {
   vendorRegisterCsv,
   trainingLogCsv,
   incidentLogCsv,
+  tasksCsv,
 } from '../services/exportService';
 import { exportAllData, importData } from '../db';
 import { showToast } from '../components/toast';
@@ -52,6 +53,7 @@ function render(): string {
           <button class="btn btn-secondary" id="export-vendor-register">Vendor Register CSV</button>
           <button class="btn btn-secondary" id="export-training-log">Training Log CSV</button>
           <button class="btn btn-secondary" id="export-incident-log">Incident Log CSV</button>
+          <button class="btn btn-secondary" id="export-tasks">Tasks CSV</button>
         </div>
       </div>
 
@@ -121,6 +123,7 @@ async function init(): Promise<void> {
     { id: 'export-vendor-register', fn: vendorRegisterCsv, filename: 'vendor-register' },
     { id: 'export-training-log', fn: trainingLogCsv, filename: 'training-log' },
     { id: 'export-incident-log', fn: incidentLogCsv, filename: 'incident-log' },
+    { id: 'export-tasks', fn: tasksCsv, filename: 'tasks' },
   ];
 
   for (const { id, fn, filename } of csvExports) {

@@ -99,6 +99,13 @@ export interface GeneratedDoc {
   createdAt: string;
 }
 
+export interface ObligationCheck {
+  id?: number;
+  category: string;
+  obligationIndex: number;
+  checked: boolean;
+}
+
 /* ── Risk classification types ── */
 
 export type RiskCategory = 'prohibited' | 'high-risk' | 'limited-risk' | 'minimal-risk' | 'unknown';

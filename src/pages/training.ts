@@ -137,10 +137,10 @@ function renderModule(mod: TrainingModule): string {
         <h2 class="card-title">${escapeHtml(mod.title)}</h2>
       </div>
       <div class="accordion-item">
-        <button class="accordion-btn" data-accordion="${mod.moduleId}">
+        <button class="accordion-btn" data-accordion="${mod.moduleId}" aria-expanded="false" aria-controls="accordion-${mod.moduleId}">
           Show module content
         </button>
-        <div class="accordion-body" id="accordion-${mod.moduleId}" style="display:none;">
+        <div class="accordion-body" id="accordion-${mod.moduleId}" role="region" aria-hidden="true" style="display:none;">
           ${renderSections(mod.sections)}
           <div class="form-group" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border, #e5e7eb);">
             <label class="form-label" for="completion-name-${mod.moduleId}">Your name</label>
@@ -197,6 +197,8 @@ async function init(): Promise<void> {
       if (!body) return;
       const isOpen = body.style.display !== 'none';
       body.style.display = isOpen ? 'none' : 'block';
+      body.setAttribute('aria-hidden', String(isOpen));
+      btn.setAttribute('aria-expanded', String(!isOpen));
       btn.textContent = isOpen ? 'Show module content' : 'Hide module content';
     });
   }

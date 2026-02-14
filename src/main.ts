@@ -11,6 +11,7 @@ registerRoute('/templates', () => import('./pages/templates').then((m) => m.defa
 registerRoute('/vendors', () => import('./pages/vendors').then((m) => m.default));
 registerRoute('/training', () => import('./pages/training').then((m) => m.default));
 registerRoute('/incidents', () => import('./pages/incidents').then((m) => m.default));
+registerRoute('/tasks', () => import('./pages/tasks').then((m) => m.default));
 registerRoute('/exports', () => import('./pages/exports').then((m) => m.default));
 registerRoute('/settings', () => import('./pages/settings').then((m) => m.default));
 

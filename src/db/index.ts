@@ -1,5 +1,14 @@
 import Dexie, { type Table } from 'dexie';
-import type { CompanyProfile, AISystem, Vendor, Task, Incident, TrainingCompletion, GeneratedDoc } from '../types';
+import type {
+  CompanyProfile,
+  AISystem,
+  Vendor,
+  Task,
+  Incident,
+  TrainingCompletion,
+  GeneratedDoc,
+  ObligationCheck,
+} from '../types';
 
 class ComplianceDB extends Dexie {
   companyProfile!: Table<CompanyProfile>;
@@ -9,6 +18,7 @@ class ComplianceDB extends Dexie {
   incidents!: Table<Incident>;
   trainingCompletions!: Table<TrainingCompletion>;
   generatedDocs!: Table<GeneratedDoc>;
+  obligationChecks!: Table<ObligationCheck>;
 
   constructor() {
     super('aicomply');
@@ -53,6 +63,16 @@ class ComplianceDB extends Dexie {
             if (!t.taskType) t.taskType = 'manual';
           });
       });
+    this.version(4).stores({
+      companyProfile: '++id',
+      aiSystems: '++id, name, riskCategory, status',
+      vendors: '++id, name, dueDiligenceStatus',
+      tasks: '++id, status, priority, relatedSystemId, taskType, [relatedSystemId+taskType]',
+      incidents: '++id, status, severity, relatedSystemId',
+      trainingCompletions: '++id, moduleId, userName',
+      generatedDocs: '++id, templateType',
+      obligationChecks: '++id, [category+obligationIndex]',
+    });
   }
 }
 
@@ -93,6 +113,7 @@ export async function exportAllData(): Promise<string> {
     incidents: await db.incidents.toArray(),
     trainingCompletions: await db.trainingCompletions.toArray(),
     generatedDocs: await db.generatedDocs.toArray(),
+    obligationChecks: await db.obligationChecks.toArray(),
     exportedAt: new Date().toISOString(),
     version: '2.0.0',
   };
@@ -107,6 +128,7 @@ const EXPECTED_TABLES = [
   'incidents',
   'trainingCompletions',
   'generatedDocs',
+  'obligationChecks',
 ] as const;
 
 function validateImportPayload(data: unknown): asserts data is Record<string, unknown[]> {
@@ -141,6 +163,7 @@ export async function importData(json: string): Promise<void> {
     if (data.trainingCompletions)
       await db.trainingCompletions.bulkAdd(data.trainingCompletions as TrainingCompletion[]);
     if (data.generatedDocs) await db.generatedDocs.bulkAdd(data.generatedDocs as GeneratedDoc[]);
+    if (data.obligationChecks) await db.obligationChecks.bulkAdd(data.obligationChecks as ObligationCheck[]);
   });
 }
 
