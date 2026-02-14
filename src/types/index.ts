@@ -57,6 +57,8 @@ export interface Task {
   description: string;
   relatedSystemId?: number;
   category: string;
+  taskType?: string;
+  owner?: string;
   priority: 'low' | 'medium' | 'high';
   status: 'pending' | 'in-progress' | 'complete';
   dueDate: string;
@@ -106,6 +108,8 @@ export interface ClassificationResult {
   confidence: RiskConfidence;
   reasoning: string[];
   actions: string[];
+  completenessScore: number;
+  missingFields: string[];
 }
 
 /* ── Page module contract ── */

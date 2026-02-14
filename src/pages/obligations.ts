@@ -53,29 +53,77 @@ interface SourceEntry {
 }
 
 const SOURCES: SourceEntry[] = [
-  { obligation: 'Risk management system', article: 'Art. 9', description: 'Establishment, implementation, documentation and maintenance of a risk management system.' },
-  { obligation: 'Data governance', article: 'Art. 10', description: 'Training, validation and testing data sets shall meet quality criteria.' },
-  { obligation: 'Technical documentation', article: 'Art. 11', description: 'Technical documentation shall be drawn up before the system is placed on the market.' },
-  { obligation: 'Record-keeping / logging', article: 'Art. 12', description: 'High-risk AI systems shall allow automatic recording of events (logs).' },
-  { obligation: 'Transparency to users', article: 'Art. 13', description: 'High-risk AI systems shall be designed to ensure operation is sufficiently transparent.' },
-  { obligation: 'Human oversight', article: 'Art. 14', description: 'High-risk AI systems shall be designed to be effectively overseen by natural persons.' },
-  { obligation: 'Accuracy, robustness, cybersecurity', article: 'Art. 15', description: 'High-risk AI systems shall achieve appropriate levels of accuracy, robustness and cybersecurity.' },
-  { obligation: 'Conformity assessment', article: 'Art. 43', description: 'Providers shall follow the conformity assessment procedure before placing on market.' },
-  { obligation: 'EU database registration', article: 'Art. 49', description: 'Providers shall register the high-risk AI system in the EU database.' },
-  { obligation: 'Transparency notices', article: 'Art. 50', description: 'Providers shall ensure AI systems intended to interact with persons are identified as such.' },
-  { obligation: 'Post-market monitoring', article: 'Art. 72', description: 'Providers shall establish a post-market monitoring system proportionate to the nature of the AI.' },
-  { obligation: 'Incident reporting', article: 'Art. 73', description: 'Providers shall report serious incidents to market surveillance authorities.' },
-  { obligation: 'Voluntary code of conduct', article: 'Art. 95', description: 'Codes of conduct intended to foster voluntary application of requirements for non-high-risk AI.' },
+  {
+    obligation: 'Risk management system',
+    article: 'Art. 9',
+    description: 'Establishment, implementation, documentation and maintenance of a risk management system.',
+  },
+  {
+    obligation: 'Data governance',
+    article: 'Art. 10',
+    description: 'Training, validation and testing data sets shall meet quality criteria.',
+  },
+  {
+    obligation: 'Technical documentation',
+    article: 'Art. 11',
+    description: 'Technical documentation shall be drawn up before the system is placed on the market.',
+  },
+  {
+    obligation: 'Record-keeping / logging',
+    article: 'Art. 12',
+    description: 'High-risk AI systems shall allow automatic recording of events (logs).',
+  },
+  {
+    obligation: 'Transparency to users',
+    article: 'Art. 13',
+    description: 'High-risk AI systems shall be designed to ensure operation is sufficiently transparent.',
+  },
+  {
+    obligation: 'Human oversight',
+    article: 'Art. 14',
+    description: 'High-risk AI systems shall be designed to be effectively overseen by natural persons.',
+  },
+  {
+    obligation: 'Accuracy, robustness, cybersecurity',
+    article: 'Art. 15',
+    description: 'High-risk AI systems shall achieve appropriate levels of accuracy, robustness and cybersecurity.',
+  },
+  {
+    obligation: 'Conformity assessment',
+    article: 'Art. 43',
+    description: 'Providers shall follow the conformity assessment procedure before placing on market.',
+  },
+  {
+    obligation: 'EU database registration',
+    article: 'Art. 49',
+    description: 'Providers shall register the high-risk AI system in the EU database.',
+  },
+  {
+    obligation: 'Transparency notices',
+    article: 'Art. 50',
+    description: 'Providers shall ensure AI systems intended to interact with persons are identified as such.',
+  },
+  {
+    obligation: 'Post-market monitoring',
+    article: 'Art. 72',
+    description: 'Providers shall establish a post-market monitoring system proportionate to the nature of the AI.',
+  },
+  {
+    obligation: 'Incident reporting',
+    article: 'Art. 73',
+    description: 'Providers shall report serious incidents to market surveillance authorities.',
+  },
+  {
+    obligation: 'Voluntary code of conduct',
+    article: 'Art. 95',
+    description: 'Codes of conduct intended to foster voluntary application of requirements for non-high-risk AI.',
+  },
 ];
 
 /* ── Helpers ── */
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 /* ── Render ── */
@@ -91,7 +139,7 @@ function render(): string {
       </div>
 
       <div class="disclaimer-banner">
-        This tool provides guidance only &mdash; it does not constitute legal advice.
+        This tool provides guidance only  -  it does not constitute legal advice.
         The obligation checklists are indicative summaries; always refer to the official
         EU AI Act text and consult qualified legal counsel.
       </div>
@@ -100,7 +148,7 @@ function render(): string {
 
       <div class="card" id="sources-panel">
         <div class="card-header">
-          <h2 class="card-title">Sources &mdash; EU AI Act Article References</h2>
+          <h2 class="card-title">Sources  -  EU AI Act Article References</h2>
         </div>
         <div class="table-wrap">
           <table>
@@ -112,12 +160,14 @@ function render(): string {
               </tr>
             </thead>
             <tbody>
-              ${SOURCES.map((s) => `
+              ${SOURCES.map(
+                (s) => `
                 <tr>
                   <td>${escapeHtml(s.obligation)}</td>
                   <td><span class="checklist-cite">${escapeHtml(s.article)}</span></td>
                   <td>${escapeHtml(s.description)}</td>
-                </tr>`).join('')}
+                </tr>`,
+              ).join('')}
             </tbody>
           </table>
         </div>
@@ -128,9 +178,7 @@ function render(): string {
 /* ── Render sub-components ── */
 
 function renderChecklistItem(obligation: Obligation, index: number, category: string): string {
-  const cite = obligation.article
-    ? `<span class="checklist-cite">${escapeHtml(obligation.article)}</span>`
-    : '';
+  const cite = obligation.article ? `<span class="checklist-cite">${escapeHtml(obligation.article)}</span>` : '';
 
   return `
     <div class="checklist-item">
@@ -144,9 +192,7 @@ function renderChecklistItem(obligation: Obligation, index: number, category: st
 
 function renderSystemBadges(systems: AISystem[]): string {
   if (systems.length === 0) return '';
-  const badges = systems.map((s) =>
-    `<span class="badge badge-gray">${escapeHtml(s.name)}</span>`
-  ).join(' ');
+  const badges = systems.map((s) => `<span class="badge badge-gray">${escapeHtml(s.name)}</span>`).join(' ');
   return `<div class="obligation-systems"><strong>Applies to:</strong> ${badges}</div>`;
 }
 
@@ -160,9 +206,7 @@ function renderAccordionSection(
   const label = riskLabel(category);
   const sectionId = `accordion-body-${sectionIndex}`;
 
-  const checklistItems = obligations.map((o, i) =>
-    renderChecklistItem(o, i, category)
-  ).join('');
+  const checklistItems = obligations.map((o, i) => renderChecklistItem(o, i, category)).join('');
 
   return `
     <div class="accordion-item">

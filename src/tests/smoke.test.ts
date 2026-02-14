@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifySystem, riskLabel, riskBadgeClass } from '../services/classifier';
+import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '../services/classifier';
 import type { AISystem } from '../types';
 
 function makeSystem(overrides: Partial<AISystem> = {}): AISystem {
@@ -49,17 +49,13 @@ describe('Risk Classifier', () => {
   });
 
   it('classifies biometric + emotion as prohibited', () => {
-    const result = classifySystem(
-      makeSystem({ biometricIdentification: true, emotionInference: true })
-    );
+    const result = classifySystem(makeSystem({ biometricIdentification: true, emotionInference: true }));
     expect(result.category).toBe('prohibited');
     expect(['low', 'medium', 'high']).toContain(result.confidence);
   });
 
   it('classifies emotion in employment as prohibited', () => {
-    const result = classifySystem(
-      makeSystem({ emotionInference: true, domains: ['employment'] })
-    );
+    const result = classifySystem(makeSystem({ emotionInference: true, domains: ['employment'] }));
     expect(result.category).toBe('prohibited');
   });
 
@@ -69,9 +65,7 @@ describe('Risk Classifier', () => {
   });
 
   it('classifies children + automated decisions as high-risk', () => {
-    const result = classifySystem(
-      makeSystem({ affectedUsers: ['children'], useCases: ['automated-decisions'] })
-    );
+    const result = classifySystem(makeSystem({ affectedUsers: ['children'], useCases: ['automated-decisions'] }));
     expect(result.category).toBe('high-risk');
   });
 
@@ -80,7 +74,7 @@ describe('Risk Classifier', () => {
       makeSystem({
         domains: ['credit'],
         useCases: ['content-generation'],
-      })
+      }),
     );
     expect(result.category).toBe('high-risk');
   });
@@ -92,9 +86,59 @@ describe('Risk Classifier', () => {
         useCases: ['automated-decisions', 'scoring'],
         dataCategories: ['sensitive', 'personal'],
         affectedUsers: ['employees'],
-      })
+      }),
     );
     expect(result.confidence).toBe('high');
+  });
+
+  it('includes completeness score and missing fields in result', () => {
+    const result = classifySystem(makeSystem({ domains: ['employment'] }));
+    expect(result.completenessScore).toBeGreaterThanOrEqual(0);
+    expect(result.completenessScore).toBeLessThanOrEqual(1);
+    expect(Array.isArray(result.missingFields)).toBe(true);
+  });
+
+  it('downgrades confidence when completeness is low', () => {
+    const sparseSystem = makeSystem({
+      name: '',
+      description: '',
+      owner: '',
+      department: '',
+      vendor: '',
+      domains: ['employment'],
+    });
+    const result = classifySystem(sparseSystem);
+    expect(result.confidence).toBe('low');
+    expect(result.completenessScore).toBeLessThan(0.5);
+  });
+});
+
+describe('computeCompleteness', () => {
+  it('returns 1.0 for a fully populated system', () => {
+    const full = makeSystem({
+      dataCategories: ['personal'],
+      affectedUsers: ['employees'],
+      useCases: ['content-generation'],
+      domains: ['other'],
+    });
+    const { score, missingFields } = computeCompleteness(full);
+    expect(score).toBe(1);
+    expect(missingFields).toHaveLength(0);
+  });
+
+  it('lists missing fields for empty system', () => {
+    const empty = makeSystem({
+      name: '',
+      description: '',
+      owner: '',
+      department: '',
+      vendor: '',
+    });
+    const { score, missingFields } = computeCompleteness(empty);
+    expect(score).toBeLessThan(1);
+    expect(missingFields.length).toBeGreaterThan(0);
+    expect(missingFields).toContain('Name');
+    expect(missingFields).toContain('Description');
   });
 });
 

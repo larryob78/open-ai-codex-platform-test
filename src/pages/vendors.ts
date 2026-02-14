@@ -6,34 +6,38 @@ import { openModal, closeModal } from '../components/modal';
 /* ── Helpers ── */
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatDate(iso: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function statusBadgeClass(status: Vendor['dueDiligenceStatus']): string {
   switch (status) {
-    case 'pending': return 'badge-yellow';
-    case 'in-progress': return 'badge-blue';
-    case 'complete': return 'badge-green';
-    default: return 'badge-yellow';
+    case 'pending':
+      return 'badge-yellow';
+    case 'in-progress':
+      return 'badge-blue';
+    case 'complete':
+      return 'badge-green';
+    default:
+      return 'badge-yellow';
   }
 }
 
 function statusLabel(status: Vendor['dueDiligenceStatus']): string {
   switch (status) {
-    case 'pending': return 'Pending';
-    case 'in-progress': return 'In Progress';
-    case 'complete': return 'Complete';
-    default: return status;
+    case 'pending':
+      return 'Pending';
+    case 'in-progress':
+      return 'In Progress';
+    case 'complete':
+      return 'Complete';
+    default:
+      return status;
   }
 }
 
@@ -170,7 +174,9 @@ function renderVendorTable(vendors: Vendor[]): string {
     return '<div class="empty-state">No vendors registered yet. Click "Add Vendor" to get started.</div>';
   }
 
-  const rows = vendors.map((v) => `
+  const rows = vendors
+    .map(
+      (v) => `
     <tr>
       <td>${escapeHtml(v.name)}</td>
       <td>${escapeHtml(v.contact)}</td>
@@ -184,7 +190,9 @@ function renderVendorTable(vendors: Vendor[]): string {
         </div>
       </td>
     </tr>
-  `).join('');
+  `,
+    )
+    .join('');
 
   return `
     <div class="table-wrap">

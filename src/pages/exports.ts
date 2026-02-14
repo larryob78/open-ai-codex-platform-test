@@ -23,7 +23,7 @@ function render(): string {
       </div>
 
       <div class="disclaimer-banner">
-        This tool provides guidance only &mdash; it does not constitute legal advice.
+        This tool provides guidance only  -  it does not constitute legal advice.
         Always consult qualified legal counsel for compliance decisions.
       </div>
 

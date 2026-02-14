@@ -1,13 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type {
-  CompanyProfile,
-  AISystem,
-  Vendor,
-  Task,
-  Incident,
-  TrainingCompletion,
-  GeneratedDoc,
-} from '../types';
+import type { CompanyProfile, AISystem, Vendor, Task, Incident, TrainingCompletion, GeneratedDoc } from '../types';
 
 class ComplianceDB extends Dexie {
   companyProfile!: Table<CompanyProfile>;
@@ -25,6 +17,15 @@ class ComplianceDB extends Dexie {
       aiSystems: '++id, name, riskCategory, status',
       vendors: '++id, name, dueDiligenceStatus',
       tasks: '++id, status, priority, relatedSystemId',
+      incidents: '++id, status, severity, relatedSystemId',
+      trainingCompletions: '++id, moduleId, userName',
+      generatedDocs: '++id, templateType',
+    });
+    this.version(2).stores({
+      companyProfile: '++id',
+      aiSystems: '++id, name, riskCategory, status',
+      vendors: '++id, name, dueDiligenceStatus',
+      tasks: '++id, status, priority, relatedSystemId, taskType, [relatedSystemId+taskType]',
       incidents: '++id, status, severity, relatedSystemId',
       trainingCompletions: '++id, moduleId, userName',
       generatedDocs: '++id, templateType',
@@ -73,19 +74,43 @@ export async function exportAllData(): Promise<string> {
   return JSON.stringify(data, null, 2);
 }
 
+const EXPECTED_TABLES = [
+  'companyProfile',
+  'aiSystems',
+  'vendors',
+  'tasks',
+  'incidents',
+  'trainingCompletions',
+  'generatedDocs',
+] as const;
+
+function validateImportPayload(data: unknown): asserts data is Record<string, unknown[]> {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    throw new Error('Invalid backup file: expected a JSON object.');
+  }
+  const obj = data as Record<string, unknown>;
+  for (const key of EXPECTED_TABLES) {
+    if (key in obj && !Array.isArray(obj[key])) {
+      throw new Error(`Invalid backup file: "${key}" must be an array.`);
+    }
+  }
+}
+
 export async function importData(json: string): Promise<void> {
-  const data = JSON.parse(json);
+  const data: unknown = JSON.parse(json);
+  validateImportPayload(data);
   await db.transaction('rw', db.tables, async () => {
     for (const table of db.tables) {
       await table.clear();
     }
-    if (data.companyProfile) await db.companyProfile.bulkAdd(data.companyProfile);
-    if (data.aiSystems) await db.aiSystems.bulkAdd(data.aiSystems);
-    if (data.vendors) await db.vendors.bulkAdd(data.vendors);
-    if (data.tasks) await db.tasks.bulkAdd(data.tasks);
-    if (data.incidents) await db.incidents.bulkAdd(data.incidents);
-    if (data.trainingCompletions) await db.trainingCompletions.bulkAdd(data.trainingCompletions);
-    if (data.generatedDocs) await db.generatedDocs.bulkAdd(data.generatedDocs);
+    if (data.companyProfile) await db.companyProfile.bulkAdd(data.companyProfile as CompanyProfile[]);
+    if (data.aiSystems) await db.aiSystems.bulkAdd(data.aiSystems as AISystem[]);
+    if (data.vendors) await db.vendors.bulkAdd(data.vendors as Vendor[]);
+    if (data.tasks) await db.tasks.bulkAdd(data.tasks as Task[]);
+    if (data.incidents) await db.incidents.bulkAdd(data.incidents as Incident[]);
+    if (data.trainingCompletions)
+      await db.trainingCompletions.bulkAdd(data.trainingCompletions as TrainingCompletion[]);
+    if (data.generatedDocs) await db.generatedDocs.bulkAdd(data.generatedDocs as GeneratedDoc[]);
   });
 }
 

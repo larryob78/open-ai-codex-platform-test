@@ -1,8 +1,5 @@
 import { db } from '../db';
-import type {
-  AISystem,
-  PageModule,
-} from '../types';
+import type { AISystem, PageModule } from '../types';
 import {
   DATA_CATEGORIES,
   AFFECTED_USERS,
@@ -12,7 +9,8 @@ import {
   DOMAIN_LABELS,
   USE_CASE_LABELS,
 } from '../types';
-import { classifySystem, riskLabel, riskBadgeClass } from '../services/classifier';
+import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '../services/classifier';
+import { generateTasksForSystem } from '../services/taskGenerator';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
 
@@ -57,7 +55,7 @@ function renderTable(): string {
         <td>${escapeHtml(s.name)}</td>
         <td><span class="badge ${riskBadgeClass(s.riskCategory ?? 'unknown')}">${riskLabel(s.riskCategory ?? 'unknown')}</span></td>
         <td><span class="badge ${STATUS_BADGE[s.status] ?? 'badge-gray'}">${statusLabel(s.status)}</span></td>
-        <td>${escapeHtml(s.department || '—')}</td>
+        <td>${escapeHtml(s.department || '-')}</td>
         <td>
           <div class="btn-group">
             <button class="btn btn-sm btn-secondary" data-action="view" data-id="${s.id}">View</button>
@@ -107,8 +105,7 @@ function renderStepper(currentStep: number): string {
 /* ── Render: wizard body ── */
 
 function renderWizardBody(data: Partial<AISystem>): string {
-  const checked = (arr: string[] | undefined, val: string) =>
-    arr?.includes(val) ? 'checked' : '';
+  const checked = (arr: string[] | undefined, val: string) => (arr?.includes(val) ? 'checked' : '');
   const isChecked = (val: boolean | undefined) => (val ? 'checked' : '');
   const sel = (a: string | undefined, b: string) => (a === b ? 'checked' : '');
 
@@ -292,7 +289,8 @@ function renderWizardFooter(isLastStep: boolean): string {
 /* ── Collect form data from wizard ── */
 
 function collectWizardData(modal: HTMLElement): Partial<AISystem> {
-  const val = (id: string) => (modal.querySelector(`#${id}`) as HTMLInputElement | HTMLTextAreaElement | null)?.value?.trim() ?? '';
+  const val = (id: string) =>
+    (modal.querySelector(`#${id}`) as HTMLInputElement | HTMLTextAreaElement | null)?.value?.trim() ?? '';
   const checkedValues = (name: string): string[] => {
     const inputs = modal.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`);
     return Array.from(inputs).map((el) => el.value);
@@ -393,7 +391,7 @@ function openWizard(existing?: AISystem): void {
       return;
     }
 
-    /* Last step — save */
+    /* Last step - save */
     const formData = collectWizardData(modal);
     const now = new Date().toISOString();
 
@@ -415,11 +413,20 @@ function openWizard(existing?: AISystem): void {
 
     try {
       if (isEdit && existing!.id) {
-        await db.aiSystems.put({ ...system, id: existing!.id });
-        showToast('AI system updated and re-classified.', 'success');
+        system.id = existing!.id;
+        await db.aiSystems.put(system);
+        const tasksCreated = await generateTasksForSystem(system);
+        showToast(
+          `AI system updated and re-classified.${tasksCreated > 0 ? ` ${tasksCreated} new task(s) created.` : ''}`,
+          'success',
+        );
       } else {
-        await db.aiSystems.add(system);
-        showToast('AI system added and classified.', 'success');
+        system.id = await db.aiSystems.add(system);
+        const tasksCreated = await generateTasksForSystem(system);
+        showToast(
+          `AI system added and classified.${tasksCreated > 0 ? ` ${tasksCreated} task(s) created.` : ''}`,
+          'success',
+        );
       }
       closeModal();
       await loadAndRender();
@@ -444,13 +451,23 @@ function openSystemCard(system: AISystem): void {
         .join('')
     : '<p>No recommended actions.</p>';
 
+  const { score: compScore, missingFields: compMissing } = computeCompleteness(system);
+  const compPct = Math.round(compScore * 100);
+  const compClass = compPct >= 80 ? 'badge-green' : compPct >= 50 ? 'badge-yellow' : 'badge-red';
+  const compMissingHtml =
+    compMissing.length > 0
+      ? `<p class="text-muted text-sm" style="margin-top:0.5rem;">Missing: ${compMissing.map((f) => escapeHtml(f)).join(', ')}.</p>`
+      : '';
+
   const body = `
     <div class="card" style="margin:0">
       <h4>Risk Classification</h4>
       <p>
         <span class="badge ${riskBadgeClass(riskCat)}">${riskLabel(riskCat)}</span>
         ${system.riskConfidence ? `<span class="badge badge-gray" style="margin-left:0.5rem">Confidence: ${system.riskConfidence}</span>` : ''}
+        <span class="badge ${compClass}" style="margin-left:0.5rem">Completeness: ${compPct}%</span>
       </p>
+      ${compMissingHtml}
 
       <h4 style="margin-top:1rem">Reasoning</h4>
       ${reasoningHtml}
@@ -463,11 +480,11 @@ function openSystemCard(system: AISystem): void {
       <h4>Basic Info</h4>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Name</label><p>${escapeHtml(system.name)}</p></div>
-        <div class="form-group"><label class="form-label">Department</label><p>${escapeHtml(system.department || '—')}</p></div>
+        <div class="form-group"><label class="form-label">Department</label><p>${escapeHtml(system.department || '-')}</p></div>
       </div>
-      <div class="form-group"><label class="form-label">Description</label><p>${escapeHtml(system.description || '—')}</p></div>
+      <div class="form-group"><label class="form-label">Description</label><p>${escapeHtml(system.description || '-')}</p></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Owner</label><p>${escapeHtml(system.owner || '—')}</p></div>
+        <div class="form-group"><label class="form-label">Owner</label><p>${escapeHtml(system.owner || '-')}</p></div>
         <div class="form-group"><label class="form-label">Status</label><p><span class="badge ${STATUS_BADGE[system.status] ?? 'badge-gray'}">${statusLabel(system.status)}</span></p></div>
       </div>
     </div>
@@ -475,11 +492,11 @@ function openSystemCard(system: AISystem): void {
     <div class="card" style="margin-top:1rem">
       <h4>Technical Details</h4>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Vendor</label><p>${escapeHtml(system.vendor || '—')}</p></div>
-        <div class="form-group"><label class="form-label">Model</label><p>${escapeHtml(system.model || '—')}</p></div>
+        <div class="form-group"><label class="form-label">Vendor</label><p>${escapeHtml(system.vendor || '-')}</p></div>
+        <div class="form-group"><label class="form-label">Model</label><p>${escapeHtml(system.model || '-')}</p></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Provider</label><p>${escapeHtml(system.provider || '—')}</p></div>
+        <div class="form-group"><label class="form-label">Provider</label><p>${escapeHtml(system.provider || '-')}</p></div>
         <div class="form-group"><label class="form-label">Deployment Type</label><p>${system.deploymentType === 'saas' ? 'SaaS' : system.deploymentType === 'in-house' ? 'In-house' : 'On-device'}</p></div>
       </div>
     </div>
@@ -489,11 +506,11 @@ function openSystemCard(system: AISystem): void {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Data Categories</label>
-          <p>${system.dataCategories.length ? system.dataCategories.map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join(', ') : '—'}</p>
+          <p>${system.dataCategories.length ? system.dataCategories.map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join(', ') : '-'}</p>
         </div>
         <div class="form-group">
           <label class="form-label">Affected Users</label>
-          <p>${system.affectedUsers.length ? system.affectedUsers.map((u) => u.charAt(0).toUpperCase() + u.slice(1)).join(', ') : '—'}</p>
+          <p>${system.affectedUsers.length ? system.affectedUsers.map((u) => u.charAt(0).toUpperCase() + u.slice(1)).join(', ') : '-'}</p>
         </div>
       </div>
     </div>
@@ -503,11 +520,11 @@ function openSystemCard(system: AISystem): void {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Use Cases</label>
-          <p>${system.useCases.length ? system.useCases.map((uc) => USE_CASE_LABELS[uc] ?? uc).join(', ') : '—'}</p>
+          <p>${system.useCases.length ? system.useCases.map((uc) => USE_CASE_LABELS[uc] ?? uc).join(', ') : '-'}</p>
         </div>
         <div class="form-group">
           <label class="form-label">Domains</label>
-          <p>${system.domains.length ? system.domains.map((d) => DOMAIN_LABELS[d] ?? d).join(', ') : '—'}</p>
+          <p>${system.domains.length ? system.domains.map((d) => DOMAIN_LABELS[d] ?? d).join(', ') : '-'}</p>
         </div>
       </div>
       <div class="form-row">
@@ -528,12 +545,16 @@ function openSystemCard(system: AISystem): void {
         <label class="form-label">Human Oversight</label>
         <p>${system.humanOversight ? 'Yes' : 'No'}</p>
       </div>
-      ${system.humanOversight ? `
+      ${
+        system.humanOversight
+          ? `
         <div class="form-group">
           <label class="form-label">Oversight Description</label>
-          <p>${escapeHtml(system.humanOversightDescription || '—')}</p>
+          <p>${escapeHtml(system.humanOversightDescription || '-')}</p>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
       <div class="form-group">
         <label class="form-label">Transparency Provided</label>
         <p>${system.transparencyProvided ? 'Yes' : 'No'}</p>

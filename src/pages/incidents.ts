@@ -7,11 +7,7 @@ import { openModal, closeModal } from '../components/modal';
 /* ── Helpers ── */
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatDate(iso: string): string {
@@ -74,9 +70,7 @@ function render(): string {
 async function init(): Promise<void> {
   await renderTable();
 
-  document
-    .getElementById('report-incident-btn')
-    ?.addEventListener('click', () => openForm());
+  document.getElementById('report-incident-btn')?.addEventListener('click', () => openForm());
 }
 
 /* ── Table rendering ── */
@@ -114,18 +108,10 @@ async function renderTable(): Promise<void> {
 
   // Wire action buttons
   for (const inc of incidents) {
-    document
-      .getElementById(`view-incident-${inc.id}`)
-      ?.addEventListener('click', () => viewIncident(inc));
-    document
-      .getElementById(`edit-incident-${inc.id}`)
-      ?.addEventListener('click', () => openForm(inc));
-    document
-      .getElementById(`export-incident-${inc.id}`)
-      ?.addEventListener('click', () => exportPdf(inc.id!));
-    document
-      .getElementById(`delete-incident-${inc.id}`)
-      ?.addEventListener('click', () => deleteIncident(inc.id!));
+    document.getElementById(`view-incident-${inc.id}`)?.addEventListener('click', () => viewIncident(inc));
+    document.getElementById(`edit-incident-${inc.id}`)?.addEventListener('click', () => openForm(inc));
+    document.getElementById(`export-incident-${inc.id}`)?.addEventListener('click', () => exportPdf(inc.id!));
+    document.getElementById(`delete-incident-${inc.id}`)?.addEventListener('click', () => deleteIncident(inc.id!));
   }
 }
 
@@ -151,9 +137,7 @@ function renderRow(inc: Incident): string {
 /* ── View modal ── */
 
 function viewIncident(inc: Incident): void {
-  const systemLine = inc.relatedSystemId
-    ? `<p><strong>Related System ID:</strong> ${inc.relatedSystemId}</p>`
-    : '';
+  const systemLine = inc.relatedSystemId ? `<p><strong>Related System ID:</strong> ${inc.relatedSystemId}</p>` : '';
 
   const resolutionSection =
     inc.status === 'resolved' || inc.status === 'closed'
@@ -258,7 +242,7 @@ async function openForm(existing?: Incident): Promise<void> {
       <div class="form-group">
         <label class="form-label" for="inc-relatedSystem">Related AI System (optional)</label>
         <select class="form-select" id="inc-relatedSystem">
-          <option value="">— None —</option>
+          <option value="">-- None --</option>
           ${systemOptions}
         </select>
       </div>

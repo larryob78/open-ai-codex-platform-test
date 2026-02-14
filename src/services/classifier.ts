@@ -16,7 +16,8 @@ const RULES: Rule[] = [
     test: (s) => s.biometricIdentification && s.emotionInference,
     category: 'prohibited',
     weight: 100,
-    reason: 'System combines biometric identification with emotion inference — this may fall under prohibited practices (Art. 5 EU AI Act).',
+    reason:
+      'System combines biometric identification with emotion inference - this may fall under prohibited practices (Art. 5 EU AI Act).',
     action: 'Seek immediate legal counsel. Consider discontinuing this use case until legal clarity is obtained.',
   },
   {
@@ -39,14 +40,16 @@ const RULES: Rule[] = [
     category: 'high-risk',
     weight: 70,
     reason: `System operates in a high-risk domain listed in Annex III (domains: ${HIGH_RISK_DOMAINS.join(', ')}).`,
-    action: 'Implement full high-risk compliance: risk management system, data governance, documentation, human oversight, transparency, and accuracy monitoring.',
+    action:
+      'Implement full high-risk compliance: risk management system, data governance, documentation, human oversight, transparency, and accuracy monitoring.',
   },
   {
     test: (s) => s.affectedUsers.includes('children') && s.useCases.includes('automated-decisions'),
     category: 'high-risk',
     weight: 80,
     reason: 'Automated decision-making affecting children triggers heightened obligations.',
-    action: 'Conduct a fundamental rights impact assessment. Ensure meaningful human oversight is in place for all decisions affecting minors.',
+    action:
+      'Conduct a fundamental rights impact assessment. Ensure meaningful human oversight is in place for all decisions affecting minors.',
   },
   {
     test: (s) => s.biometricIdentification && !s.emotionInference,
@@ -100,7 +103,42 @@ const RULES: Rule[] = [
   },
 ];
 
+/* ── Completeness scoring ── */
+
+interface FieldCheck {
+  field: string;
+  label: string;
+  test: (s: AISystem) => boolean;
+}
+
+const REQUIRED_FIELDS: FieldCheck[] = [
+  { field: 'name', label: 'Name', test: (s) => !!s.name.trim() },
+  { field: 'description', label: 'Description', test: (s) => !!s.description.trim() },
+  { field: 'owner', label: 'Owner', test: (s) => !!s.owner.trim() },
+  { field: 'department', label: 'Department', test: (s) => !!s.department.trim() },
+  { field: 'vendor', label: 'Vendor', test: (s) => !!s.vendor.trim() },
+  { field: 'deploymentType', label: 'Deployment type', test: (s) => !!s.deploymentType },
+  { field: 'dataCategories', label: 'Data categories', test: (s) => s.dataCategories.length > 0 },
+  { field: 'affectedUsers', label: 'Affected users', test: (s) => s.affectedUsers.length > 0 },
+  { field: 'useCases', label: 'Use cases', test: (s) => s.useCases.length > 0 },
+  { field: 'domains', label: 'Domains', test: (s) => s.domains.length > 0 },
+];
+
+export function computeCompleteness(system: AISystem): { score: number; missingFields: string[] } {
+  const missing: string[] = [];
+  for (const check of REQUIRED_FIELDS) {
+    if (!check.test(system)) {
+      missing.push(check.label);
+    }
+  }
+  const score = (REQUIRED_FIELDS.length - missing.length) / REQUIRED_FIELDS.length;
+  return { score, missingFields: missing };
+}
+
+/* ── Classification ── */
+
 export function classifySystem(system: AISystem): ClassificationResult {
+  const { score: completenessScore, missingFields } = computeCompleteness(system);
   const triggered: Rule[] = [];
 
   for (const rule of RULES) {
@@ -112,14 +150,18 @@ export function classifySystem(system: AISystem): ClassificationResult {
   if (triggered.length === 0) {
     return {
       category: 'minimal-risk',
-      confidence: 'medium',
-      reasoning: ['No high-risk, limited-risk, or prohibited indicators were triggered. System appears to be minimal-risk under the EU AI Act.'],
+      confidence: completenessScore < 0.5 ? 'low' : 'medium',
+      reasoning: [
+        'No high-risk, limited-risk, or prohibited indicators were triggered. System appears to be minimal-risk under the EU AI Act.',
+      ],
       actions: [
         'Develop a basic AI usage policy.',
         'Ensure staff are aware they are using AI tools.',
         'Maintain basic records of AI system usage.',
         'Review classification periodically or when system changes.',
       ],
+      completenessScore,
+      missingFields,
     };
   }
 
@@ -134,28 +176,45 @@ export function classifySystem(system: AISystem): ClassificationResult {
   if (categoryRules.length >= 3) confidence = 'high';
   else if (categoryRules.length >= 2) confidence = 'medium';
 
+  // Downgrade confidence when data is incomplete
+  if (completenessScore < 0.5 && confidence !== 'low') {
+    confidence = 'low';
+  } else if (completenessScore < 0.7 && confidence === 'high') {
+    confidence = 'medium';
+  }
+
   const reasoning = triggered.map((r) => r.reason);
   const actions = [...new Set(triggered.map((r) => r.action))];
 
-  return { category, confidence, reasoning, actions };
+  return { category, confidence, reasoning, actions, completenessScore, missingFields };
 }
 
 export function riskBadgeClass(category: RiskCategory): string {
   switch (category) {
-    case 'prohibited': return 'badge-red';
-    case 'high-risk': return 'badge-yellow';
-    case 'limited-risk': return 'badge-blue';
-    case 'minimal-risk': return 'badge-green';
-    default: return 'badge-gray';
+    case 'prohibited':
+      return 'badge-red';
+    case 'high-risk':
+      return 'badge-yellow';
+    case 'limited-risk':
+      return 'badge-blue';
+    case 'minimal-risk':
+      return 'badge-green';
+    default:
+      return 'badge-gray';
   }
 }
 
 export function riskLabel(category: RiskCategory): string {
   switch (category) {
-    case 'prohibited': return 'Prohibited';
-    case 'high-risk': return 'High Risk';
-    case 'limited-risk': return 'Limited Risk';
-    case 'minimal-risk': return 'Minimal Risk';
-    default: return 'Unknown';
+    case 'prohibited':
+      return 'Prohibited';
+    case 'high-risk':
+      return 'High Risk';
+    case 'limited-risk':
+      return 'Limited Risk';
+    case 'minimal-risk':
+      return 'Minimal Risk';
+    default:
+      return 'Unknown';
   }
 }

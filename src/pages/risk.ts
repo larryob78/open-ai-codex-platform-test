@@ -1,39 +1,30 @@
 import { db } from '../db';
 import type { AISystem, RiskCategory } from '../types';
-import { classifySystem, riskLabel, riskBadgeClass } from '../services/classifier';
+import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '../services/classifier';
+import { generateTasksForSystem } from '../services/taskGenerator';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 
-const RISK_CATEGORIES: RiskCategory[] = [
-  'prohibited',
-  'high-risk',
-  'limited-risk',
-  'minimal-risk',
-];
+const RISK_CATEGORIES: RiskCategory[] = ['prohibited', 'high-risk', 'limited-risk', 'minimal-risk'];
 
 const CATEGORY_DESCRIPTIONS: Record<RiskCategory, string> = {
-  'prohibited': 'AI practices that are banned outright under the EU AI Act.',
+  prohibited: 'AI practices that are banned outright under the EU AI Act.',
   'high-risk': 'AI systems subject to strict requirements before market placement.',
   'limited-risk': 'AI systems with specific transparency obligations.',
   'minimal-risk': 'AI systems with no specific regulatory obligations beyond voluntary codes.',
-  'unknown': 'Systems not yet classified.',
+  unknown: 'Systems not yet classified.',
 };
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 function confidenceBadgeClass(confidence: string): string {
   switch (confidence) {
-    case 'high': return 'badge-green';
-    case 'medium': return 'badge-yellow';
-    case 'low': return 'badge-red';
-    default: return 'badge-gray';
+    case 'high':
+      return 'badge-green';
+    case 'medium':
+      return 'badge-yellow';
+    case 'low':
+      return 'badge-red';
+    default:
+      return 'badge-gray';
   }
 }
 
@@ -45,12 +36,12 @@ function render(): string {
       <div class="page-header">
         <h1>Risk Classification</h1>
         <p>Classify your AI systems according to the EU AI Act risk categories.
-           The Act defines four tiers &mdash; prohibited, high-risk, limited-risk,
-           and minimal-risk &mdash; each carrying different compliance obligations.</p>
+           The Act defines four tiers - prohibited, high-risk, limited-risk,
+           and minimal-risk - each carrying different compliance obligations.</p>
       </div>
 
       <div class="disclaimer-banner">
-        This tool provides guidance only &mdash; it does not constitute legal advice.
+        This tool provides guidance only - it does not constitute legal advice.
         Automated classification is indicative; always consult qualified legal counsel
         for final risk determinations.
       </div>
@@ -99,11 +90,11 @@ function renderSystemsTable(systems: AISystem[]): string {
 
   // Sort by risk category weight: prohibited first, then high, limited, minimal, unknown last
   const categoryOrder: Record<string, number> = {
-    'prohibited': 0,
+    prohibited: 0,
     'high-risk': 1,
     'limited-risk': 2,
     'minimal-risk': 3,
-    'unknown': 4,
+    unknown: 4,
   };
 
   const sorted = [...systems].sort((a, b) => {
@@ -113,22 +104,18 @@ function renderSystemsTable(systems: AISystem[]): string {
     return a.name.localeCompare(b.name);
   });
 
-  const rows = sorted.map((s) => {
-    const cat = s.riskCategory ?? 'unknown';
-    const badge = riskBadgeClass(cat);
-    const label = riskLabel(cat);
-    const confidence = s.riskConfidence ?? 'N/A';
-    const confBadge = s.riskConfidence ? confidenceBadgeClass(s.riskConfidence) : 'badge-gray';
-    const reasoning = s.riskReasoning && s.riskReasoning.length > 0
-      ? escapeHtml(s.riskReasoning[0])
-      : '<em>Not classified</em>';
-    const statusBadge = s.status === 'active'
-      ? 'badge-green'
-      : s.status === 'draft'
-        ? 'badge-yellow'
-        : 'badge-gray';
+  const rows = sorted
+    .map((s) => {
+      const cat = s.riskCategory ?? 'unknown';
+      const badge = riskBadgeClass(cat);
+      const label = riskLabel(cat);
+      const confidence = s.riskConfidence ?? 'N/A';
+      const confBadge = s.riskConfidence ? confidenceBadgeClass(s.riskConfidence) : 'badge-gray';
+      const reasoning =
+        s.riskReasoning && s.riskReasoning.length > 0 ? escapeHtml(s.riskReasoning[0]) : '<em>Not classified</em>';
+      const statusBadge = s.status === 'active' ? 'badge-green' : s.status === 'draft' ? 'badge-yellow' : 'badge-gray';
 
-    return `
+      return `
       <tr>
         <td>
           <a href="#" class="system-name-link" data-system-id="${s.id}">
@@ -140,7 +127,8 @@ function renderSystemsTable(systems: AISystem[]): string {
         <td>${reasoning}</td>
         <td><span class="badge ${statusBadge}">${escapeHtml(s.status)}</span></td>
       </tr>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <div class="table-wrap">
@@ -167,37 +155,54 @@ function renderDetailPanel(system: AISystem): string {
   const label = riskLabel(cat);
   const confidence = system.riskConfidence ?? 'N/A';
 
-  const reasoningItems = (system.riskReasoning ?? []).map((r) =>
-    `<li>${escapeHtml(r)}</li>`
-  ).join('');
+  const { score, missingFields } = computeCompleteness(system);
+  const pct = Math.round(score * 100);
+  const completenessClass = pct >= 80 ? 'badge-green' : pct >= 50 ? 'badge-yellow' : 'badge-red';
 
-  const actionItems = (system.riskActions ?? []).map((a) =>
-    `<div class="checklist-item">
+  const missingHtml =
+    missingFields.length > 0
+      ? `<p class="text-muted text-sm" style="margin-top:0.5rem;">
+          Missing: ${missingFields.map((f) => escapeHtml(f)).join(', ')}.
+          <a href="#/inventory" style="text-decoration:underline;">Complete in Inventory</a>
+        </p>`
+      : '';
+
+  const reasoningItems = (system.riskReasoning ?? []).map((r) => `<li>${escapeHtml(r)}</li>`).join('');
+
+  const actionItems = (system.riskActions ?? [])
+    .map(
+      (a) =>
+        `<div class="checklist-item">
       <label>
         <input type="checkbox" />
         <span>${escapeHtml(a)}</span>
       </label>
-    </div>`
-  ).join('');
+    </div>`,
+    )
+    .join('');
 
   return `
     <div class="card" id="risk-detail-card">
       <div class="card-header">
-        <h2 class="card-title">Classification Details &mdash; ${escapeHtml(system.name)}</h2>
+        <h2 class="card-title">Classification Details - ${escapeHtml(system.name)}</h2>
         <button class="btn btn-secondary" id="close-detail-btn">Close</button>
       </div>
 
       <div class="detail-meta">
         <span><strong>Category:</strong> <span class="badge ${badge}">${label}</span></span>
         <span><strong>Confidence:</strong> ${escapeHtml(String(confidence))}</span>
+        <span><strong>Completeness:</strong> <span class="badge ${completenessClass}">${pct}%</span></span>
         <span><strong>Status:</strong> ${escapeHtml(system.status)}</span>
       </div>
+      ${missingHtml}
 
       <div class="detail-section">
         <h3>All Reasoning</h3>
-        ${reasoningItems
-          ? `<ul class="reasoning-list">${reasoningItems}</ul>`
-          : '<p><em>No reasoning available.</em></p>'}
+        ${
+          reasoningItems
+            ? `<ul class="reasoning-list">${reasoningItems}</ul>`
+            : '<p><em>No reasoning available.</em></p>'
+        }
       </div>
 
       <div class="detail-section">
@@ -214,11 +219,11 @@ async function init(): Promise<void> {
 
   // ── Summary grid ──
   const counts: Record<RiskCategory, number> = {
-    'prohibited': 0,
+    prohibited: 0,
     'high-risk': 0,
     'limited-risk': 0,
     'minimal-risk': 0,
-    'unknown': 0,
+    unknown: 0,
   };
 
   for (const s of allSystems) {
@@ -288,6 +293,7 @@ async function handleReclassifyAll(): Promise<void> {
     }
 
     let updated = 0;
+    let totalNewTasks = 0;
     for (const system of allSystems) {
       const result = classifySystem(system);
       await db.aiSystems.update(system.id!, {
@@ -297,20 +303,23 @@ async function handleReclassifyAll(): Promise<void> {
         riskActions: result.actions,
         updatedAt: new Date().toISOString(),
       });
+      const updatedSystem = { ...system, riskCategory: result.category } as AISystem;
+      totalNewTasks += await generateTasksForSystem(updatedSystem);
       updated++;
     }
 
-    showToast(`Successfully reclassified ${updated} system(s).`, 'success');
+    const taskMsg = totalNewTasks > 0 ? ` ${totalNewTasks} new task(s) created.` : '';
+    showToast(`Successfully reclassified ${updated} system(s).${taskMsg}`, 'success');
 
     // Re-render the page content
     const freshSystems = await db.aiSystems.toArray();
 
     const counts: Record<RiskCategory, number> = {
-      'prohibited': 0,
+      prohibited: 0,
       'high-risk': 0,
       'limited-risk': 0,
       'minimal-risk': 0,
-      'unknown': 0,
+      unknown: 0,
     };
     for (const s of freshSystems) {
       const cat = s.riskCategory ?? 'unknown';
@@ -335,7 +344,6 @@ async function handleReclassifyAll(): Promise<void> {
 
     // Re-attach links with fresh data
     attachSystemLinks(freshSystems);
-
   } catch (err) {
     console.error('Reclassification failed:', err);
     showToast('Reclassification failed. See console for details.', 'error');

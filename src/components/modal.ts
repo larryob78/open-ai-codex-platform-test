@@ -1,4 +1,7 @@
+import { escapeHtml } from '../utils/escapeHtml';
+
 let currentModal: HTMLElement | null = null;
+let overlayListener: ((e: MouseEvent) => void) | null = null;
 
 export function openModal(title: string, bodyHtml: string, footerHtml = ''): HTMLElement {
   closeModal();
@@ -9,7 +12,7 @@ export function openModal(title: string, bodyHtml: string, footerHtml = ''): HTM
   modal.className = 'modal visible';
   modal.innerHTML = `
     <div class="modal-header">
-      <h3>${title}</h3>
+      <h3>${escapeHtml(title)}</h3>
       <button class="modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">${bodyHtml}</div>
@@ -20,9 +23,11 @@ export function openModal(title: string, bodyHtml: string, footerHtml = ''): HTM
   currentModal = modal;
 
   modal.querySelector('.modal-close')?.addEventListener('click', closeModal);
-  overlay?.addEventListener('click', (e) => {
+
+  overlayListener = (e: MouseEvent) => {
     if (e.target === overlay) closeModal();
-  });
+  };
+  overlay?.addEventListener('click', overlayListener);
 
   return modal;
 }
@@ -32,6 +37,10 @@ export function closeModal(): void {
   if (currentModal) {
     currentModal.remove();
     currentModal = null;
+  }
+  if (overlayListener && overlay) {
+    overlay.removeEventListener('click', overlayListener);
+    overlayListener = null;
   }
   const sidebar = document.getElementById('sidebar');
   if (!sidebar?.classList.contains('open')) {

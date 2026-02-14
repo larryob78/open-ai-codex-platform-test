@@ -30,7 +30,8 @@ export async function handleRoute(): Promise<void> {
       content.innerHTML = `<div class="page"><div class="card"><h2>Something went wrong</h2><p>${String(err)}</p></div></div>`;
     }
   } else {
-    content.innerHTML = '<div class="page"><div class="card"><h2>Page not found</h2><p>The page you requested does not exist.</p></div></div>';
+    content.innerHTML =
+      '<div class="page"><div class="card"><h2>Page not found</h2><p>The page you requested does not exist.</p></div></div>';
   }
 
   // Update active nav link

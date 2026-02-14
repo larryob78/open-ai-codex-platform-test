@@ -5,11 +5,7 @@ import { showToast } from '../components/toast';
 /* ── Helpers ── */
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatDate(iso: string): string {
@@ -178,7 +174,7 @@ function render(): string {
       </div>
 
       <div class="disclaimer-banner">
-        This tool provides guidance only &mdash; it does not constitute legal advice.
+        This tool provides guidance only  -  it does not constitute legal advice.
         Always consult qualified legal counsel for compliance decisions.
       </div>
 
@@ -275,13 +271,12 @@ function renderTrainingLog(completions: TrainingCompletion[]): void {
   if (!container) return;
 
   if (completions.length === 0) {
-    container.innerHTML = '<div class="empty-state">No training completions yet. Complete a module above to get started.</div>';
+    container.innerHTML =
+      '<div class="empty-state">No training completions yet. Complete a module above to get started.</div>';
     return;
   }
 
-  const sorted = [...completions].sort(
-    (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
-  );
+  const sorted = [...completions].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
 
   container.innerHTML = `
     <div class="table-wrap">
