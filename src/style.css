@@ -206,7 +206,7 @@ tr:hover td { background: var(--c-gray-50); }
   font-size: .85rem; color: var(--c-gray-400); font-weight: 500;
 }
 .stepper-step.active { color: var(--c-primary); }
-.stepper-step.done { color: var(--c-success); }
+.stepper-step.completed { color: var(--c-success); }
 .stepper-num {
   width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -214,7 +214,7 @@ tr:hover td { background: var(--c-gray-50); }
   background: var(--c-gray-200); color: var(--c-gray-500);
 }
 .stepper-step.active .stepper-num { background: var(--c-primary); color: var(--c-white); }
-.stepper-step.done .stepper-num { background: var(--c-success); color: var(--c-white); }
+.stepper-step.completed .stepper-num { background: var(--c-success); color: var(--c-white); }
 .stepper-line { width: 24px; height: 2px; background: var(--c-gray-200); align-self: center; }
 
 .wizard-step { display: none; }

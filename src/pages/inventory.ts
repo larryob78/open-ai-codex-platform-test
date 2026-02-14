@@ -343,9 +343,11 @@ function openWizard(existing?: AISystem): void {
   const backBtn = modal.querySelector<HTMLButtonElement>('#wiz-back')!;
   const nextBtn = modal.querySelector<HTMLButtonElement>('#wiz-next')!;
 
+  showStep(currentStep);
+
   function showStep(index: number): void {
     steps.forEach((s, i) => {
-      s.style.display = i === index ? '' : 'none';
+      s.style.display = i === index ? 'block' : 'none';
     });
     stepperSteps.forEach((s, i) => {
       s.classList.toggle('active', i === index);

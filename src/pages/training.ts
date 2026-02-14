@@ -233,7 +233,7 @@ function renderModuleCompletions(moduleId: string, completions: TrainingCompleti
   container.innerHTML = moduleCompletions
     .map(
       (c) =>
-        `<span class="badge-green" style="display:inline-block; margin:0.25rem 0.25rem 0 0;">
+        `<span class="badge badge-green" style="display:inline-block; margin:0.25rem 0.25rem 0 0;">
           Completed by ${escapeHtml(c.userName)} on ${formatDate(c.completedAt)}
         </span>`,
     )

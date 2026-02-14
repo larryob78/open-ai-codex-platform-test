@@ -69,13 +69,13 @@ function render(): string {
           AI Comply stores all data locally in your browser using IndexedDB.
           No data is sent to any server. Your data stays on this device.
         </p>
-        <span class="badge-green">Local-only mode</span>
+        <span class="badge badge-green" style="margin-top:0.5rem; display:inline-block;">Local-only mode</span>
       </div>
 
       <!-- Danger Zone -->
-      <div class="card" style="border-color: var(--danger, #e74c3c);">
+      <div class="card" style="border-color: var(--c-danger);">
         <div class="card-header">
-          <h2 class="card-title" style="color: var(--danger, #e74c3c);">Danger Zone</h2>
+          <h2 class="card-title" style="color: var(--c-danger);">Danger Zone</h2>
         </div>
         <p class="text-muted">
           Permanently delete all data stored in AI Comply. This action cannot be undone.

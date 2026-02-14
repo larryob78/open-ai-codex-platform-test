@@ -170,9 +170,8 @@ async function init(): Promise<void> {
           const docs = await db.generatedDocs
             .where('templateType')
             .equals(templateId)
-            .reverse()
             .sortBy('createdAt');
-          const latest = docs[0];
+          const latest = docs[docs.length - 1];
           if (latest) {
             showDocumentModal(latest);
           } else {
