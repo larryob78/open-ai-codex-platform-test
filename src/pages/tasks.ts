@@ -3,6 +3,7 @@ import { escapeHtml } from '../utils/escapeHtml';
 import { openModal, closeModal } from '../components/modal';
 import { showToast } from '../components/toast';
 import { maxLength } from '../utils/validate';
+import { logger } from '../utils/logger';
 import type { Task } from '../types';
 
 const COLUMNS: { status: Task['status']; label: string; badgeClass: string }[] = [
@@ -112,14 +113,19 @@ function wireCardButtons(): void {
   // Move left (status regression)
   document.querySelectorAll<HTMLButtonElement>('[data-move-left]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const id = Number(btn.dataset.moveLeft);
-      const task = await db.tasks.get(id);
-      if (!task) return;
-      const prev = prevStatus(task.status);
-      if (prev) {
-        await db.tasks.update(id, { status: prev });
-        await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + prev, id);
-        await refreshBoard();
+      try {
+        const id = Number(btn.dataset.moveLeft);
+        const task = await db.tasks.get(id);
+        if (!task) return;
+        const prev = prevStatus(task.status);
+        if (prev) {
+          await db.tasks.update(id, { status: prev });
+          await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + prev, id);
+          await refreshBoard();
+        }
+      } catch (err) {
+        logger.error('Failed to move task', { error: String(err) });
+        showToast('Failed to move task.', 'error');
       }
     });
   });
@@ -127,17 +133,22 @@ function wireCardButtons(): void {
   // Move right (status progression)
   document.querySelectorAll<HTMLButtonElement>('[data-move-right]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const id = Number(btn.dataset.moveRight);
-      const task = await db.tasks.get(id);
-      if (!task) return;
-      const next = nextStatus(task.status);
-      if (next) {
-        const updates: Partial<Task> = { status: next };
-        if (next === 'complete') updates.completedAt = new Date().toISOString();
-        await db.tasks.update(id, updates);
-        await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + next, id);
-        showToast(next === 'complete' ? 'Task completed!' : 'Task moved.', 'success');
-        await refreshBoard();
+      try {
+        const id = Number(btn.dataset.moveRight);
+        const task = await db.tasks.get(id);
+        if (!task) return;
+        const next = nextStatus(task.status);
+        if (next) {
+          const updates: Partial<Task> = { status: next };
+          if (next === 'complete') updates.completedAt = new Date().toISOString();
+          await db.tasks.update(id, updates);
+          await addAuditEntry('status-change', 'task', 'Moved task "' + task.title + '" to ' + next, id);
+          showToast(next === 'complete' ? 'Task completed!' : 'Task moved.', 'success');
+          await refreshBoard();
+        }
+      } catch (err) {
+        logger.error('Failed to move task', { error: String(err) });
+        showToast('Failed to move task.', 'error');
       }
     });
   });
@@ -228,11 +239,16 @@ function openEditModal(task: Task): void {
   });
 
   modal.querySelector('#tb-delete')?.addEventListener('click', async () => {
-    await db.tasks.delete(task.id!);
-    await addAuditEntry('delete', 'task', 'Deleted task: ' + task.title, task.id);
-    showToast('Task deleted.', 'success');
-    closeModal();
-    await refreshBoard();
+    try {
+      await db.tasks.delete(task.id!);
+      await addAuditEntry('delete', 'task', 'Deleted task: ' + task.title, task.id);
+      showToast('Task deleted.', 'success');
+      closeModal();
+      await refreshBoard();
+    } catch (err) {
+      logger.error('Failed to delete task', { error: String(err) });
+      showToast('Failed to delete task.', 'error');
+    }
   });
 }
 

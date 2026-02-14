@@ -4,6 +4,7 @@ import { downloadBlob, downloadText } from '../services/exportService';
 import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
+import { logger } from '../utils/logger';
 import type { GeneratedDoc } from '../types';
 
 function formatDate(iso: string): string {
@@ -75,7 +76,7 @@ function showDocumentModal(doc: GeneratedDoc): void {
       downloadBlob(pdfBlob, filename);
       showToast('PDF downloaded.', 'success');
     } catch (err) {
-      console.error('PDF generation failed:', err);
+      logger.error('PDF generation failed', { error: String(err) });
       showToast('Failed to generate PDF.', 'error');
     }
   });
@@ -144,7 +145,7 @@ async function init(): Promise<void> {
           await refreshPreviouslyGenerated();
           await refreshGrid();
         } catch (err) {
-          console.error('Template generation failed:', err);
+          logger.error('Template generation failed', { error: String(err) });
           showToast('Failed to generate template.', 'error');
         } finally {
           btn.disabled = false;
@@ -166,7 +167,7 @@ async function init(): Promise<void> {
             showToast('No saved version found.', 'warning');
           }
         } catch (err) {
-          console.error('Failed to load saved document:', err);
+          logger.error('Failed to load saved document', { error: String(err) });
           showToast('Failed to load saved document.', 'error');
         }
       });
@@ -254,7 +255,7 @@ async function refreshPreviouslyGenerated(): Promise<void> {
         downloadBlob(pdfBlob, filename);
         showToast('PDF downloaded.', 'success');
       } catch (err) {
-        console.error('PDF generation failed:', err);
+        logger.error('PDF generation failed', { error: String(err) });
         showToast('Failed to generate PDF.', 'error');
       }
     });

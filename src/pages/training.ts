@@ -142,7 +142,7 @@ function renderModule(mod: TrainingModule): string {
         </button>
         <div class="accordion-body" id="accordion-${mod.moduleId}" role="region" aria-hidden="true" style="display:none;">
           ${renderSections(mod.sections)}
-          <div class="form-group" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border, #e5e7eb);">
+          <div class="form-group" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--c-gray-200, #e5e7eb);">
             <label class="form-label" for="completion-name-${mod.moduleId}">Your name</label>
             <input
               class="form-input"

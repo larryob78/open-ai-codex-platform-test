@@ -4,6 +4,7 @@ import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '
 import { generateTasksForSystem } from '../services/taskGenerator';
 import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
+import { logger } from '../utils/logger';
 
 const RISK_CATEGORIES: RiskCategory[] = ['prohibited', 'high-risk', 'limited-risk', 'minimal-risk'];
 
@@ -321,8 +322,8 @@ async function handleReclassifyAll(): Promise<void> {
     const panel = document.getElementById('risk-detail-panel');
     if (panel) panel.innerHTML = '';
   } catch (err) {
-    console.error('Reclassification failed:', err);
-    showToast('Reclassification failed. See console for details.', 'error');
+    logger.error('Reclassification failed', { error: String(err) });
+    showToast('Reclassification failed.', 'error');
   } finally {
     if (reclassifyBtn) {
       reclassifyBtn.removeAttribute('disabled');

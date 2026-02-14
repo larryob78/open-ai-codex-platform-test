@@ -10,7 +10,7 @@ import {
   incidentLogCsv,
   tasksCsv,
 } from '../services/exportService';
-import { exportAllData, importData } from '../db';
+import { exportAllData, importData, addAuditEntry } from '../db';
 import { showToast } from '../components/toast';
 
 /* ── Render ── */
@@ -144,6 +144,7 @@ async function init(): Promise<void> {
     withLoading(jsonBtn, async () => {
       const json = await exportAllData();
       downloadText(json, `ai-comply-backup-${dateStamp()}.json`, 'application/json');
+      await addAuditEntry('export', 'backup', 'Exported JSON backup');
       showToast('JSON backup downloaded.', 'success');
     }).catch(() => showToast('Failed to export JSON backup.', 'error'));
   });
@@ -158,6 +159,7 @@ async function init(): Promise<void> {
     try {
       const text = await file.text();
       await importData(text);
+      await addAuditEntry('import', 'backup', 'Imported JSON backup: ' + file.name);
       showToast('Data imported successfully. Reloading...', 'success');
       setTimeout(() => window.location.reload(), 1000);
     } catch {

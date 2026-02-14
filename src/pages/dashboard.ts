@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { db, addAuditEntry } from '../db';
 import { riskLabel, riskBadgeClass } from '../services/classifier';
 import { navigateTo } from '../router';
 import { escapeHtml } from '../utils/escapeHtml';
@@ -146,7 +146,7 @@ function render(): string {
         <div class="timeline-widget">
           ${EU_TIMELINE.map(
             (entry) => `
-            <div class="timeline-entry" style="display:flex;gap:1rem;align-items:flex-start;padding:0.75rem 0;border-bottom:1px solid var(--border, #e5e7eb);">
+            <div class="timeline-entry" style="display:flex;gap:1rem;align-items:flex-start;padding:0.75rem 0;border-bottom:1px solid var(--c-gray-200, #e5e7eb);">
               <div style="min-width:110px;">
                 <span class="badge ${timelineStatusClass(entry.iso)}" aria-label="${escapeHtml(entry.date)} - ${timelineStatusLabel(entry.iso)}">${timelineStatusLabel(entry.iso)}</span>
               </div>
@@ -377,6 +377,7 @@ function openTaskEditModal(task: Task): void {
     const priority = (modal.querySelector<HTMLSelectElement>('#task-priority')?.value ?? 'medium') as Task['priority'];
 
     await db.tasks.update(task.id!, { owner, dueDate, priority });
+    await addAuditEntry('update', 'task', 'Updated task from dashboard: ' + task.title, task.id);
     showToast('Task updated.', 'success');
     closeModal();
 
@@ -407,6 +408,7 @@ function refreshTaskList(allTasks: Task[], container: HTMLElement, countEl: HTML
     document.getElementById(`task-edit-${task.id}`)?.addEventListener('click', () => openTaskEditModal(task));
     document.getElementById(`task-done-${task.id}`)?.addEventListener('click', async () => {
       await db.tasks.update(task.id!, { status: 'complete' as const, completedAt: new Date().toISOString() });
+      await addAuditEntry('status-change', 'task', 'Completed task from dashboard: ' + task.title, task.id);
       showToast('Task marked complete.', 'success');
       const refreshed = await db.tasks.toArray();
       refreshTaskList(refreshed, container, countEl);

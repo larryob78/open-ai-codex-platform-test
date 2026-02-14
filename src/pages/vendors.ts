@@ -4,6 +4,7 @@ import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
 import { maxLength } from '../utils/validate';
+import { logger } from '../utils/logger';
 
 function formatDate(iso: string): string {
   if (!iso) return '-';
@@ -132,7 +133,7 @@ function openVendorForm(existing?: Vendor): void {
       closeModal();
       await refreshVendorTable();
     } catch (err) {
-      console.error('Failed to save vendor:', err);
+      logger.error('Failed to save vendor', { error: String(err) });
       showToast('Failed to save vendor.', 'error');
     }
   });
@@ -166,7 +167,7 @@ function confirmDeleteVendor(vendor: Vendor): void {
       closeModal();
       await refreshVendorTable();
     } catch (err) {
-      console.error('Failed to delete vendor:', err);
+      logger.error('Failed to delete vendor', { error: String(err) });
       showToast('Failed to delete vendor.', 'error');
     }
   });
