@@ -138,14 +138,17 @@ function render(): string {
       <div class="card">
         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
           <h2 class="card-title">EU AI Act Compliance Timeline</h2>
-          <button class="btn btn-secondary btn-sm" id="timeline-sources-btn">Sources</button>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <span class="text-muted text-sm">${EU_TIMELINE.filter((e) => daysUntil(e.iso) <= 0).length} of ${EU_TIMELINE.length} milestones in effect</span>
+            <button class="btn btn-secondary btn-sm" id="timeline-sources-btn">Sources</button>
+          </div>
         </div>
         <div class="timeline-widget">
           ${EU_TIMELINE.map(
             (entry) => `
             <div class="timeline-entry" style="display:flex;gap:1rem;align-items:flex-start;padding:0.75rem 0;border-bottom:1px solid var(--border, #e5e7eb);">
               <div style="min-width:110px;">
-                <span class="badge ${timelineStatusClass(entry.iso)}">${timelineStatusLabel(entry.iso)}</span>
+                <span class="badge ${timelineStatusClass(entry.iso)}" aria-label="${escapeHtml(entry.date)} - ${timelineStatusLabel(entry.iso)}">${timelineStatusLabel(entry.iso)}</span>
               </div>
               <div>
                 <strong>${escapeHtml(entry.date)}</strong> - ${escapeHtml(entry.title)}
@@ -218,7 +221,7 @@ function showSourcesModal(): void {
           </tr>
           <tr>
             <td>EUR-Lex</td>
-            <td>https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689</td>
+            <td><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689" target="_blank" rel="noopener noreferrer">View full text on EUR-Lex</a></td>
           </tr>
         </tbody>
       </table>
@@ -316,28 +319,7 @@ async function init(): Promise<void> {
   const nextActionsEl = document.getElementById('next-actions');
   const taskCountEl = document.getElementById('task-count');
   if (nextActionsEl) {
-    const pendingTasks = allTasks
-      .filter((t) => t.status !== 'complete')
-      .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2));
-
-    const completedCount = allTasks.filter((t) => t.status === 'complete').length;
-    if (taskCountEl) taskCountEl.textContent = `${pendingTasks.length} open, ${completedCount} done`;
-
-    if (pendingTasks.length === 0) {
-      nextActionsEl.innerHTML = '<div class="empty-state">No pending tasks. You\'re all caught up!</div>';
-    } else {
-      nextActionsEl.innerHTML = pendingTasks.map((task) => renderTaskItem(task)).join('');
-
-      for (const task of pendingTasks) {
-        document.getElementById(`task-edit-${task.id}`)?.addEventListener('click', () => openTaskEditModal(task));
-        document.getElementById(`task-done-${task.id}`)?.addEventListener('click', async () => {
-          await db.tasks.update(task.id!, { status: 'complete' as const, completedAt: new Date().toISOString() });
-          showToast('Task marked complete.', 'success');
-          const refreshed = await db.tasks.toArray();
-          refreshTaskList(refreshed, nextActionsEl, taskCountEl);
-        });
-      }
-    }
+    refreshTaskList(allTasks, nextActionsEl, taskCountEl);
   }
 }
 

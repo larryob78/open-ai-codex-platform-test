@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { db } from '../db';
 import type { AISystem, Task, RiskCategory } from '../types';
 
@@ -19,9 +20,14 @@ interface TaskTemplate {
   suggestedDueDate: string;
 }
 
-function monthsBefore(isoDate: string, months: number): string {
+export function monthsBefore(isoDate: string, months: number): string {
   const d = new Date(isoDate);
+  d.setDate(1); // avoid day overflow when crossing month boundaries
   d.setMonth(d.getMonth() - months);
+  // restore to last valid day of result month or original day, whichever is smaller
+  const original = new Date(isoDate);
+  const maxDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(original.getDate(), maxDay));
   return d.toISOString().slice(0, 10);
 }
 
@@ -159,9 +165,13 @@ export async function generateTasksForSystem(system: AISystem): Promise<number> 
   const templates = TASK_TEMPLATES[category];
   if (!templates || templates.length === 0) return 0;
 
-  const systemId = system.id!;
-  const existingTasks = await db.tasks.where('relatedSystemId').equals(systemId).toArray();
-  const existingTypes = new Set(existingTasks.map((t) => t.taskType).filter(Boolean));
+  if (system.id === undefined) return 0;
+  const systemId = system.id;
+  const existingTasks = await db.tasks
+    .where('[relatedSystemId+taskType]')
+    .between([systemId, Dexie.minKey], [systemId, Dexie.maxKey])
+    .toArray();
+  const existingTypes = new Set(existingTasks.map((t) => t.taskType));
 
   const newTasks: Task[] = [];
   for (const tmpl of templates) {
@@ -173,6 +183,7 @@ export async function generateTasksForSystem(system: AISystem): Promise<number> 
       relatedSystemId: systemId,
       category,
       taskType: tmpl.taskType,
+      owner: '',
       priority: tmpl.priority,
       status: 'pending',
       dueDate: tmpl.suggestedDueDate,

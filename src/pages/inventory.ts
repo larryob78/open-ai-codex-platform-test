@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '../services/classifier';
 import { generateTasksForSystem } from '../services/taskGenerator';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
 
@@ -28,12 +29,6 @@ const STATUS_BADGE: Record<string, string> = {
 
 function statusLabel(status: string): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function escapeHtml(str: string): string {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 /* ── Render: list view ── */

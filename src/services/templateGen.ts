@@ -1,6 +1,7 @@
 import { db, getCompanyProfile } from '../db';
 import type { AISystem, CompanyProfile, GeneratedDoc, Vendor } from '../types';
-import { riskLabel } from './classifier';
+import { riskLabel, computeCompleteness } from './classifier';
+import { escapeMarkdown } from '../utils/escapeHtml';
 
 interface TemplateContext {
   companyName: string;
@@ -22,7 +23,7 @@ function systemInventoryTable(systems: AISystem[]): string {
   const rows = systems
     .map(
       (s) =>
-        `| ${s.name} | ${s.owner || 'Unassigned'} | ${s.description?.slice(0, 60) || 'N/A'} | ${riskLabel(s.riskCategory ?? 'unknown')} |`,
+        `| ${escapeMarkdown(s.name)} | ${escapeMarkdown(s.owner || 'Unassigned')} | ${escapeMarkdown(s.description?.slice(0, 60) || 'N/A')} | ${riskLabel(s.riskCategory ?? 'unknown')} |`,
     )
     .join('\n');
   return header + rows + '\n';
@@ -31,8 +32,12 @@ function systemInventoryTable(systems: AISystem[]): string {
 function vendorSection(vendors: Vendor[]): string {
   if (vendors.length === 0) return '- *No third-party AI vendors registered.*\n';
   return (
-    vendors.map((v) => `- **${v.name}** (${v.contact || 'No contact'}) - Status: ${v.dueDiligenceStatus}`).join('\n') +
-    '\n'
+    vendors
+      .map(
+        (v) =>
+          `- **${escapeMarkdown(v.name)}** (${escapeMarkdown(v.contact || 'No contact')}) - Status: ${v.dueDiligenceStatus}`,
+      )
+      .join('\n') + '\n'
   );
 }
 
@@ -41,18 +46,18 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'ai-usage-policy',
     title: 'AI Usage Policy',
     description: 'Company-wide policy governing the use of AI systems.',
-    generate: (ctx) => `# AI Usage Policy - ${ctx.companyName}
+    generate: (ctx) => `# AI Usage Policy - ${escapeMarkdown(ctx.companyName)}
 
 **Effective Date:** ${new Date().toISOString().slice(0, 10)}
 **Version:** 1.0
 
 ## Purpose
-This policy governs the responsible use of artificial intelligence (AI) systems within ${ctx.companyName}. It aligns with the EU AI Act and applicable Irish regulations.
+This policy governs the responsible use of artificial intelligence (AI) systems within ${escapeMarkdown(ctx.companyName)}. It aligns with the EU AI Act and applicable Irish regulations.
 
 > **Disclaimer:** This document is for guidance only and does not constitute legal advice. Consult qualified legal counsel for binding obligations.
 
 ## Scope
-This policy applies to all employees, contractors, and third parties who develop, deploy, or use AI systems on behalf of ${ctx.companyName}.
+This policy applies to all employees, contractors, and third parties who develop, deploy, or use AI systems on behalf of ${escapeMarkdown(ctx.companyName)}.
 
 ### AI Systems in Scope
 ${systemInventoryTable(ctx.systems)}
@@ -70,7 +75,7 @@ ${vendorSection(ctx.vendors)}
 ## Responsibilities
 - **AI System Owners** are accountable for compliance of their systems.
 - **All Staff** must complete mandatory AI awareness training.
-- **DPO / Compliance Officer** (${ctx.profile?.dpoName || '[DPO Name]'}, ${ctx.profile?.dpoEmail || '[DPO Email]'}) reviews AI risk assessments and coordinates audits.
+- **DPO / Compliance Officer** (${escapeMarkdown(ctx.profile?.dpoName || '[DPO Name]')}, ${escapeMarkdown(ctx.profile?.dpoEmail || '[DPO Email]')}) reviews AI risk assessments and coordinates audits.
 
 ## Incident Reporting
 Any AI-related incident must be reported immediately using the company's incident reporting process.
@@ -83,7 +88,7 @@ This policy will be reviewed at least annually or when material changes occur to
     id: 'vendor-due-diligence',
     title: 'Vendor Due Diligence Checklist',
     description: 'Checklist for evaluating third-party AI vendors.',
-    generate: (ctx) => `# Vendor Due Diligence Checklist - ${ctx.companyName}
+    generate: (ctx) => `# Vendor Due Diligence Checklist - ${escapeMarkdown(ctx.companyName)}
 
 **Date:** ${new Date().toISOString().slice(0, 10)}
 
@@ -137,18 +142,18 @@ ${vendorSection(ctx.vendors)}
     id: 'incident-response-plan',
     title: 'Incident Response Plan',
     description: 'Procedure for handling AI-related incidents.',
-    generate: (ctx) => `# AI Incident Response Plan - ${ctx.companyName}
+    generate: (ctx) => `# AI Incident Response Plan - ${escapeMarkdown(ctx.companyName)}
 
 **Effective Date:** ${new Date().toISOString().slice(0, 10)}
 
 > **Disclaimer:** This plan is for guidance only and does not constitute legal advice.
 
 ## 1. Purpose
-To establish a structured approach for identifying, reporting, and resolving incidents involving AI systems at ${ctx.companyName}.
+To establish a structured approach for identifying, reporting, and resolving incidents involving AI systems at ${escapeMarkdown(ctx.companyName)}.
 
 ## 2. Escalation Contacts
-- **DPO / Compliance Officer:** ${ctx.profile?.dpoName || '[DPO Name]'} (${ctx.profile?.dpoEmail || '[DPO Email]'})
-- **Sector:** ${ctx.profile?.sector || '[Sector]'}
+- **DPO / Compliance Officer:** ${escapeMarkdown(ctx.profile?.dpoName || '[DPO Name]')} (${escapeMarkdown(ctx.profile?.dpoEmail || '[DPO Email]')})
+- **Sector:** ${escapeMarkdown(ctx.profile?.sector || '[Sector]')}
 
 ## 3. AI Systems Covered
 ${systemInventoryTable(ctx.systems)}
@@ -164,7 +169,7 @@ ${systemInventoryTable(ctx.systems)}
 ## 5. Reporting
 1. Any employee who identifies an AI incident must report it immediately.
 2. Reports should include: system name, description, affected parties, severity estimate.
-3. Critical and high-severity incidents must be escalated to ${ctx.profile?.dpoName || 'the DPO'} and management within 1 hour.
+3. Critical and high-severity incidents must be escalated to ${escapeMarkdown(ctx.profile?.dpoName || 'the DPO')} and management within 1 hour.
 
 ## 6. Response Steps
 1. **Contain:** Isolate the AI system if causing ongoing harm.
@@ -186,7 +191,7 @@ All incidents must be logged and retained for a minimum of 5 years.
     description: 'Standard operating procedure for human oversight of AI outputs.',
     generate: (ctx) => {
       const systemNames = ctx.systems.map((s) => s.name);
-      return `# Human Oversight Standard Operating Procedure - ${ctx.companyName}
+      return `# Human Oversight Standard Operating Procedure - ${escapeMarkdown(ctx.companyName)}
 
 **Effective Date:** ${new Date().toISOString().slice(0, 10)}
 
@@ -196,10 +201,10 @@ All incidents must be logged and retained for a minimum of 5 years.
 To ensure that qualified personnel review and validate AI system outputs before they are used for consequential decisions.
 
 ## Scope
-Applies to all AI systems classified as high-risk or limited-risk operated by ${ctx.companyName}.
+Applies to all AI systems classified as high-risk or limited-risk operated by ${escapeMarkdown(ctx.companyName)}.
 
 ### Systems Covered
-${systemNames.length ? systemNames.map((s) => `- ${s}`).join('\n') : '- *All registered AI systems*'}
+${systemNames.length ? systemNames.map((s) => `- ${escapeMarkdown(s)}`).join('\n') : '- *All registered AI systems*'}
 
 ## Procedure
 
@@ -230,7 +235,7 @@ ${systemNames.length ? systemNames.map((s) => `- ${s}`).join('\n') : '- *All reg
     id: 'model-output-review',
     title: 'Model Output Review SOP',
     description: 'Procedure for reviewing and validating AI model outputs.',
-    generate: (ctx) => `# Model Output Review SOP - ${ctx.companyName}
+    generate: (ctx) => `# Model Output Review SOP - ${escapeMarkdown(ctx.companyName)}
 
 **Effective Date:** ${new Date().toISOString().slice(0, 10)}
 
@@ -272,7 +277,7 @@ Maintain a log of reviewed outputs for audit purposes. Retain for at least 3 yea
     description: 'Notice templates for informing users about AI system usage.',
     generate: (ctx) => {
       const systemNames = ctx.systems.map((s) => s.name);
-      return `# Transparency Notice Templates - ${ctx.companyName}
+      return `# Transparency Notice Templates - ${escapeMarkdown(ctx.companyName)}
 
 **Date:** ${new Date().toISOString().slice(0, 10)}
 
@@ -283,13 +288,13 @@ Maintain a log of reviewed outputs for audit purposes. Retain for at least 3 yea
 ## Template 1: General AI Disclosure (Website/App)
 
 > **AI-Powered Features**
-> Some features of this service use artificial intelligence. AI-generated outputs are provided for informational purposes and may not always be accurate. A qualified human reviews consequential outputs before decisions are made. For questions, contact ${ctx.companyName} at [email].
+> Some features of this service use artificial intelligence. AI-generated outputs are provided for informational purposes and may not always be accurate. A qualified human reviews consequential outputs before decisions are made. For questions, contact ${escapeMarkdown(ctx.companyName)} at [email].
 
 ---
 
 ## Template 2: Chatbot Disclosure
 
-> You are interacting with an AI-powered assistant operated by ${ctx.companyName}. This assistant can help with general enquiries but is not a substitute for professional advice. A human agent is available upon request.
+> You are interacting with an AI-powered assistant operated by ${escapeMarkdown(ctx.companyName)}. This assistant can help with general enquiries but is not a substitute for professional advice. A human agent is available upon request.
 
 ---
 
@@ -302,8 +307,8 @@ Maintain a log of reviewed outputs for audit purposes. Retain for at least 3 yea
 ## Template 4: Employee AI Tool Notice
 
 > **AI Tools in Use**
-> ${ctx.companyName} uses the following AI tools in business operations:
-${systemNames.length ? systemNames.map((s) => `> - ${s}`).join('\n') : '> - *To be populated from AI inventory*'}
+> ${escapeMarkdown(ctx.companyName)} uses the following AI tools in business operations:
+${systemNames.length ? systemNames.map((s) => `> - ${escapeMarkdown(s)}`).join('\n') : '> - *To be populated from AI inventory*'}
 >
 > All employees must complete AI awareness training before using these tools. Do not enter sensitive personal data or confidential information into AI tools unless specifically authorised.
 
@@ -314,6 +319,135 @@ These notices support compliance with:
 - EU AI Act Art. 50 (transparency obligations)
 - GDPR Art. 13/14 (information to data subjects)
 - Irish DPC guidance on AI transparency
+`;
+    },
+  },
+  {
+    id: 'data-processing-record',
+    title: 'Record of AI Processing Activities',
+    description: 'GDPR Art. 30 record covering AI system data processing.',
+    generate: (ctx) => {
+      const systemRows = ctx.systems
+        .map((s) => {
+          const cats = s.dataCategories.length > 0 ? s.dataCategories.join(', ') : 'Not specified';
+          const users = s.affectedUsers.length > 0 ? s.affectedUsers.join(', ') : 'Not specified';
+          return `| ${escapeMarkdown(s.name)} | ${escapeMarkdown(s.description?.slice(0, 40) || 'N/A')} | ${escapeMarkdown(cats)} | ${escapeMarkdown(users)} |`;
+        })
+        .join('\n');
+
+      const systemTable =
+        ctx.systems.length > 0
+          ? `| System | Purpose | Data Categories | Affected Users |\n|--------|---------|-----------------|----------------|\n${systemRows}\n`
+          : '- *No AI systems registered yet.*\n';
+
+      return `# Record of AI Processing Activities - ${escapeMarkdown(ctx.companyName)}
+
+**Date:** ${new Date().toISOString().slice(0, 10)}
+
+> **Disclaimer:** This record is for guidance only and does not constitute legal advice. It should be reviewed by your DPO and legal counsel.
+
+## 1. Controller Details
+- **Organisation:** ${escapeMarkdown(ctx.companyName)}
+- **DPO:** ${escapeMarkdown(ctx.profile?.dpoName || '[DPO Name]')} (${escapeMarkdown(ctx.profile?.dpoEmail || '[DPO Email]')})
+- **Sector:** ${escapeMarkdown(ctx.profile?.sector || '[Sector]')}
+- **Country:** ${escapeMarkdown(ctx.profile?.country || 'Ireland')}
+
+## 2. AI Processing Activities
+
+${systemTable}
+
+## 3. Lawful Basis for Processing
+For each AI system above, document the lawful basis under GDPR Art. 6:
+- [ ] Consent (Art. 6(1)(a))
+- [ ] Contract (Art. 6(1)(b))
+- [ ] Legal obligation (Art. 6(1)(c))
+- [ ] Vital interests (Art. 6(1)(d))
+- [ ] Public interest (Art. 6(1)(e))
+- [ ] Legitimate interests (Art. 6(1)(f))
+
+## 4. Data Transfers
+Document any transfers of personal data outside the EEA through AI systems:
+- **Transfer mechanism:** ______________________
+- **Recipient country:** ______________________
+- **Safeguards:** ______________________
+
+## 5. Retention
+AI system logs and outputs containing personal data should be retained for: ______________________
+
+## 6. Third-Party AI Vendors
+${vendorSection(ctx.vendors)}
+
+## Regulatory Basis
+- GDPR Art. 30 (Records of processing activities)
+- EU AI Act Art. 12 (Record-keeping for high-risk AI)
+`;
+    },
+  },
+  {
+    id: 'risk-assessment-template',
+    title: 'AI Risk Assessment Report',
+    description: 'Per-system risk assessment with classification details and actions.',
+    generate: (ctx) => {
+      const sections = ctx.systems
+        .map((s) => {
+          const cat = s.riskCategory ?? 'unknown';
+          const { score, missingFields } = computeCompleteness(s);
+          const pct = Math.round(score * 100);
+          const reasoning = (s.riskReasoning ?? []).map((r) => `- ${escapeMarkdown(r)}`).join('\n');
+          const actions = (s.riskActions ?? []).map((a) => `- [ ] ${escapeMarkdown(a)}`).join('\n');
+          const missing =
+            missingFields.length > 0
+              ? `**Missing data:** ${missingFields.join(', ')}`
+              : 'All required fields complete.';
+
+          return `### ${escapeMarkdown(s.name)}
+
+| Field | Value |
+|-------|-------|
+| Risk Category | ${riskLabel(cat)} |
+| Confidence | ${escapeMarkdown(String(s.riskConfidence ?? 'N/A'))} |
+| Completeness | ${pct}% |
+| Owner | ${escapeMarkdown(s.owner || 'Unassigned')} |
+| Department | ${escapeMarkdown(s.department || 'N/A')} |
+| Status | ${escapeMarkdown(s.status)} |
+
+${missing}
+
+**Reasoning:**
+${reasoning || '- Not yet classified.'}
+
+**Recommended Actions:**
+${actions || '- No actions specified.'}
+`;
+        })
+        .join('\n---\n\n');
+
+      return `# AI Risk Assessment Report - ${escapeMarkdown(ctx.companyName)}
+
+**Date:** ${new Date().toISOString().slice(0, 10)}
+
+> **Disclaimer:** This report is for guidance only and does not constitute legal advice. Risk classifications are indicative; consult qualified legal counsel for final determinations.
+
+## Overview
+- **Total AI systems:** ${ctx.systems.length}
+- **Assessed by:** AI Comply automated classifier
+- **DPO:** ${escapeMarkdown(ctx.profile?.dpoName || '[DPO Name]')}
+
+## System Assessments
+
+${ctx.systems.length > 0 ? sections : '*No AI systems registered yet.*'}
+
+## Methodology
+Risk classifications are based on rules derived from the EU AI Act (Regulation (EU) 2024/1689), including:
+- Art. 5 (Prohibited practices)
+- Art. 6 and Annex III (High-risk classification)
+- Art. 50 (Transparency obligations for limited-risk)
+- Completeness scoring adjusts confidence when system data is incomplete.
+
+## Next Steps
+1. Review each system classification with your legal team.
+2. Address all recommended actions by the suggested due dates.
+3. Re-assess after adding missing data to improve confidence levels.
 `;
     },
   },

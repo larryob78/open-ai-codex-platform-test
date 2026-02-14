@@ -147,13 +147,23 @@ async function init(): Promise<void> {
     }
 
     try {
+      const dpoEmail = getInput('profile-dpo-email').value.trim();
+      if (dpoEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dpoEmail)) {
+        showToast('Please enter a valid DPO email address.', 'warning');
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+        return;
+      }
+
       const profile: Partial<CompanyProfile> = {
         name: getInput('profile-name').value.trim(),
         sector: getInput('profile-sector').value.trim(),
         country: getInput('profile-country').value.trim() || 'Ireland',
         employeeCount: getSelect('profile-employee-count').value,
         dpoName: getInput('profile-dpo-name').value.trim(),
-        dpoEmail: getInput('profile-dpo-email').value.trim(),
+        dpoEmail,
       };
 
       await saveCompanyProfile(profile);

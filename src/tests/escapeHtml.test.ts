@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeHtml } from '../utils/escapeHtml';
+import { escapeHtml, escapeMarkdown } from '../utils/escapeHtml';
 
 describe('escapeHtml', () => {
   it('escapes ampersands', () => {
@@ -32,5 +32,31 @@ describe('escapeHtml', () => {
     expect(result).not.toContain('<');
     expect(result).not.toContain('>');
     expect(result).toBe('&quot;&gt;&lt;img src=x onerror=alert(1)&gt;');
+  });
+});
+
+describe('escapeMarkdown', () => {
+  it('escapes pipe characters', () => {
+    expect(escapeMarkdown('col1 | col2')).toBe('col1 \\| col2');
+  });
+
+  it('escapes square brackets', () => {
+    expect(escapeMarkdown('[link](url)')).toBe('\\[link\\]\\(url\\)');
+  });
+
+  it('escapes asterisks and underscores', () => {
+    expect(escapeMarkdown('**bold** _italic_')).toBe('\\*\\*bold\\*\\* \\_italic\\_');
+  });
+
+  it('escapes backticks', () => {
+    expect(escapeMarkdown('`code`')).toBe('\\`code\\`');
+  });
+
+  it('escapes hash characters', () => {
+    expect(escapeMarkdown('# heading')).toBe('\\# heading');
+  });
+
+  it('leaves plain text unchanged', () => {
+    expect(escapeMarkdown('Hello World 123')).toBe('Hello World 123');
   });
 });

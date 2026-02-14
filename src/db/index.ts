@@ -30,6 +30,29 @@ class ComplianceDB extends Dexie {
       trainingCompletions: '++id, moduleId, userName',
       generatedDocs: '++id, templateType',
     });
+    this.version(3)
+      .stores({
+        companyProfile: '++id',
+        aiSystems: '++id, name, riskCategory, status',
+        vendors: '++id, name, dueDiligenceStatus',
+        tasks: '++id, status, priority, relatedSystemId, taskType, [relatedSystemId+taskType]',
+        incidents: '++id, status, severity, relatedSystemId',
+        trainingCompletions: '++id, moduleId, userName',
+        generatedDocs: '++id, templateType',
+      })
+      .upgrade((tx) => {
+        const now = new Date().toISOString();
+        tx.table('companyProfile')
+          .toCollection()
+          .modify((p: Record<string, unknown>) => {
+            if (!p.createdAt) p.createdAt = (p.updatedAt as string) || now;
+          });
+        tx.table('tasks')
+          .toCollection()
+          .modify((t: Record<string, unknown>) => {
+            if (!t.taskType) t.taskType = 'manual';
+          });
+      });
   }
 }
 
@@ -46,6 +69,7 @@ export async function saveCompanyProfile(profile: Partial<CompanyProfile>): Prom
   if (existing?.id) {
     await db.companyProfile.update(existing.id, { ...profile, updatedAt: new Date().toISOString() });
   } else {
+    const now = new Date().toISOString();
     await db.companyProfile.add({
       name: '',
       sector: '',
@@ -54,7 +78,8 @@ export async function saveCompanyProfile(profile: Partial<CompanyProfile>): Prom
       dpoName: '',
       dpoEmail: '',
       ...profile,
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     } as CompanyProfile);
   }
 }
@@ -97,7 +122,12 @@ function validateImportPayload(data: unknown): asserts data is Record<string, un
 }
 
 export async function importData(json: string): Promise<void> {
-  const data: unknown = JSON.parse(json);
+  let data: unknown;
+  try {
+    data = JSON.parse(json);
+  } catch {
+    throw new Error('Invalid backup file: not valid JSON.');
+  }
   validateImportPayload(data);
   await db.transaction('rw', db.tables, async () => {
     for (const table of db.tables) {

@@ -1,15 +1,10 @@
 import { db } from '../db';
 import { TEMPLATES, generateTemplate } from '../services/templateGen';
 import { downloadBlob, downloadText } from '../services/exportService';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
 import type { GeneratedDoc } from '../types';
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function formatDate(iso: string): string {
   if (!iso) return '';
@@ -201,8 +196,8 @@ async function refreshGrid(): Promise<void> {
       btn.dataset.viewSaved = t.id;
       btn.textContent = 'View Saved';
       btn.addEventListener('click', async () => {
-        const docs = await db.generatedDocs.where('templateType').equals(t.id).reverse().sortBy('createdAt');
-        const latest = docs[0];
+        const docs = await db.generatedDocs.where('templateType').equals(t.id).sortBy('createdAt');
+        const latest = docs[docs.length - 1];
         if (latest) showDocumentModal(latest);
       });
       btnGroup.appendChild(btn);

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classifySystem, riskLabel, riskBadgeClass, computeCompleteness } from '../services/classifier';
+import { monthsBefore } from '../services/taskGenerator';
 import type { AISystem } from '../types';
 
 function makeSystem(overrides: Partial<AISystem> = {}): AISystem {
@@ -159,5 +160,59 @@ describe('riskBadgeClass', () => {
     expect(riskBadgeClass('limited-risk')).toBe('badge-blue');
     expect(riskBadgeClass('minimal-risk')).toBe('badge-green');
     expect(riskBadgeClass('unknown')).toBe('badge-gray');
+  });
+});
+
+describe('monthsBefore', () => {
+  it('subtracts months within the same year', () => {
+    expect(monthsBefore('2026-08-02', 3)).toBe('2026-05-02');
+  });
+
+  it('crosses year boundary correctly', () => {
+    expect(monthsBefore('2025-02-02', 6)).toBe('2024-08-02');
+  });
+
+  it('handles January to prior year', () => {
+    expect(monthsBefore('2025-01-15', 6)).toBe('2024-07-15');
+  });
+
+  it('clamps day when target month is shorter', () => {
+    // March 31 minus 1 month should give Feb 28 (non-leap) or Feb 29 (leap)
+    const result = monthsBefore('2025-03-31', 1);
+    expect(result).toBe('2025-02-28');
+  });
+});
+
+describe('classifier edge cases', () => {
+  it('all-empty system has 0% completeness', () => {
+    const empty = makeSystem({
+      name: '',
+      description: '',
+      owner: '',
+      department: '',
+      vendor: '',
+      deploymentType: undefined as unknown as AISystem['deploymentType'],
+      dataCategories: [],
+      affectedUsers: [],
+      useCases: [],
+      domains: [],
+    });
+    const { score } = computeCompleteness(empty);
+    expect(score).toBe(0);
+  });
+
+  it('prohibited + incomplete system gets low confidence', () => {
+    const system = makeSystem({
+      name: '',
+      description: '',
+      owner: '',
+      department: '',
+      vendor: '',
+      biometricIdentification: true,
+      emotionInference: true,
+    });
+    const result = classifySystem(system);
+    expect(result.category).toBe('prohibited');
+    expect(result.confidence).toBe('low');
   });
 });

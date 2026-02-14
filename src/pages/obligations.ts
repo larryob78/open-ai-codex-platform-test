@@ -1,6 +1,7 @@
 import { db } from '../db';
 import type { AISystem, RiskCategory } from '../types';
 import { riskLabel, riskBadgeClass } from '../services/classifier';
+import { escapeHtml } from '../utils/escapeHtml';
 
 /* ── Obligation definitions ── */
 
@@ -119,12 +120,6 @@ const SOURCES: SourceEntry[] = [
     description: 'Codes of conduct intended to foster voluntary application of requirements for non-high-risk AI.',
   },
 ];
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 /* ── Render ── */
 

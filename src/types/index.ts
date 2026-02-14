@@ -8,6 +8,7 @@ export interface CompanyProfile {
   employeeCount: string;
   dpoName: string;
   dpoEmail: string;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -57,7 +58,7 @@ export interface Task {
   description: string;
   relatedSystemId?: number;
   category: string;
-  taskType?: string;
+  taskType: string;
   owner?: string;
   priority: 'low' | 'medium' | 'high';
   status: 'pending' | 'in-progress' | 'complete';

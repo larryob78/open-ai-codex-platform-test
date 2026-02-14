@@ -1,12 +1,7 @@
 import { db } from '../db';
 import type { TrainingCompletion } from '../types';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IE', {
@@ -27,7 +22,7 @@ interface TrainingModule {
 const MODULES: TrainingModule[] = [
   {
     moduleId: 'safe-prompting',
-    title: 'Safe Prompting &amp; Verification',
+    title: 'Safe Prompting & Verification',
     sections: [
       {
         heading: 'Why it matters',
@@ -86,7 +81,7 @@ const MODULES: TrainingModule[] = [
   },
   {
     moduleId: 'human-oversight',
-    title: 'Human Oversight &amp; Escalation',
+    title: 'Human Oversight & Escalation',
     sections: [
       {
         heading: 'EU AI Act requirements',
@@ -139,7 +134,7 @@ function renderModule(mod: TrainingModule): string {
   return `
     <div class="card" data-module-id="${mod.moduleId}">
       <div class="card-header">
-        <h2 class="card-title">${mod.title}</h2>
+        <h2 class="card-title">${escapeHtml(mod.title)}</h2>
       </div>
       <div class="accordion-item">
         <button class="accordion-btn" data-accordion="${mod.moduleId}">
@@ -249,13 +244,13 @@ function wireCompleteButton(mod: TrainingModule): void {
 
     const completion: TrainingCompletion = {
       moduleId: mod.moduleId,
-      moduleName: mod.title.replace(/&amp;/g, '&'),
+      moduleName: mod.title,
       userName,
       completedAt: new Date().toISOString(),
     };
 
     await db.trainingCompletions.add(completion);
-    showToast(`Module "${mod.title.replace(/&amp;/g, '&')}" completed by ${userName}.`, 'success');
+    showToast(`Module "${mod.title}" completed by ${userName}.`, 'success');
 
     if (input) input.value = '';
 

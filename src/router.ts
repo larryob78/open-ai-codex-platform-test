@@ -1,4 +1,5 @@
 import type { PageModule } from './types';
+import { escapeHtml } from './utils/escapeHtml';
 
 const routes: Record<string, () => Promise<PageModule>> = {};
 
@@ -27,7 +28,7 @@ export async function handleRoute(): Promise<void> {
       await page.init();
     } catch (err) {
       console.error('Route error:', err);
-      content.innerHTML = `<div class="page"><div class="card"><h2>Something went wrong</h2><p>${String(err)}</p></div></div>`;
+      content.innerHTML = `<div class="page"><div class="card"><h2>Something went wrong</h2><p>${escapeHtml(String(err))}</p></div></div>`;
     }
   } else {
     content.innerHTML =

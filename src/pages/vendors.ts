@@ -1,13 +1,8 @@
 import { db } from '../db';
 import type { Vendor } from '../types';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function formatDate(iso: string): string {
   if (!iso) return '-';

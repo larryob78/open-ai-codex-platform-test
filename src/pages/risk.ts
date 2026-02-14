@@ -212,12 +212,9 @@ function renderDetailPanel(system: AISystem): string {
     </div>`;
 }
 
-/* ── Init ── */
+/* ── Shared rendering helper ── */
 
-async function init(): Promise<void> {
-  const allSystems = await db.aiSystems.toArray();
-
-  // ── Summary grid ──
+function computeCounts(systems: AISystem[]): Record<RiskCategory, number> {
   const counts: Record<RiskCategory, number> = {
     prohibited: 0,
     'high-risk': 0,
@@ -225,27 +222,32 @@ async function init(): Promise<void> {
     'minimal-risk': 0,
     unknown: 0,
   };
-
-  for (const s of allSystems) {
+  for (const s of systems) {
     const cat = s.riskCategory ?? 'unknown';
     if (counts[cat] !== undefined) {
       counts[cat]++;
     }
   }
+  return counts;
+}
 
+function renderPageContent(systems: AISystem[]): void {
   const gridEl = document.getElementById('risk-summary-grid');
   if (gridEl) {
-    gridEl.innerHTML = renderSummaryGrid(counts);
+    gridEl.innerHTML = renderSummaryGrid(computeCounts(systems));
   }
-
-  // ── Systems table ──
   const tableContainer = document.getElementById('risk-table-container');
   if (tableContainer) {
-    tableContainer.innerHTML = renderSystemsTable(allSystems);
+    tableContainer.innerHTML = renderSystemsTable(systems);
   }
+  attachSystemLinks(systems);
+}
 
-  // ── Wire up system name links ──
-  attachSystemLinks(allSystems);
+/* ── Init ── */
+
+async function init(): Promise<void> {
+  const allSystems = await db.aiSystems.toArray();
+  renderPageContent(allSystems);
 
   // ── Reclassify All button ──
   const reclassifyBtn = document.getElementById('reclassify-all-btn');
@@ -313,37 +315,11 @@ async function handleReclassifyAll(): Promise<void> {
 
     // Re-render the page content
     const freshSystems = await db.aiSystems.toArray();
-
-    const counts: Record<RiskCategory, number> = {
-      prohibited: 0,
-      'high-risk': 0,
-      'limited-risk': 0,
-      'minimal-risk': 0,
-      unknown: 0,
-    };
-    for (const s of freshSystems) {
-      const cat = s.riskCategory ?? 'unknown';
-      if (counts[cat] !== undefined) {
-        counts[cat]++;
-      }
-    }
-
-    const gridEl = document.getElementById('risk-summary-grid');
-    if (gridEl) {
-      gridEl.innerHTML = renderSummaryGrid(counts);
-    }
-
-    const tableContainer = document.getElementById('risk-table-container');
-    if (tableContainer) {
-      tableContainer.innerHTML = renderSystemsTable(freshSystems);
-    }
+    renderPageContent(freshSystems);
 
     // Clear any open detail panel
     const panel = document.getElementById('risk-detail-panel');
     if (panel) panel.innerHTML = '';
-
-    // Re-attach links with fresh data
-    attachSystemLinks(freshSystems);
   } catch (err) {
     console.error('Reclassification failed:', err);
     showToast('Reclassification failed. See console for details.', 'error');

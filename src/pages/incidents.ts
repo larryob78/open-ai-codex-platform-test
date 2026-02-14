@@ -1,14 +1,9 @@
 import { db } from '../db';
 import type { Incident } from '../types';
 import { generateIncidentPdf, downloadBlob } from '../services/exportService';
+import { escapeHtml } from '../utils/escapeHtml';
 import { showToast } from '../components/toast';
 import { openModal, closeModal } from '../components/modal';
-
-/* ── Helpers ── */
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function formatDate(iso: string): string {
   if (!iso) return '';
@@ -327,13 +322,26 @@ async function exportPdf(id: number): Promise<void> {
 
 /* ── Delete ── */
 
-async function deleteIncident(id: number): Promise<void> {
-  const confirmed = window.confirm('Are you sure you want to delete this incident? This action cannot be undone.');
-  if (!confirmed) return;
+function deleteIncident(id: number): void {
+  const body = `
+    <p>Are you sure you want to delete this incident?</p>
+    <p class="text-muted text-sm">This action cannot be undone.</p>
+  `;
+  const footer = `
+    <div class="btn-group">
+      <button class="btn btn-secondary" id="delete-inc-cancel">Cancel</button>
+      <button class="btn btn-danger" id="delete-inc-confirm">Delete</button>
+    </div>
+  `;
+  const modal = openModal('Delete Incident', body, footer);
 
-  await db.incidents.delete(id);
-  showToast('Incident deleted.', 'success');
-  await renderTable();
+  modal.querySelector('#delete-inc-cancel')?.addEventListener('click', () => closeModal());
+  modal.querySelector('#delete-inc-confirm')?.addEventListener('click', async () => {
+    await db.incidents.delete(id);
+    showToast('Incident deleted.', 'success');
+    closeModal();
+    await renderTable();
+  });
 }
 
 export default { render, init };
