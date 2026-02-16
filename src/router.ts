@@ -24,6 +24,7 @@ export async function handleRoute(): Promise<void> {
 
   if (loader) {
     try {
+      content.innerHTML = '<div class="page-loading"><div class="spinner"></div><span>Loading...</span></div>';
       const page = await loader();
       content.innerHTML = page.render();
       await page.init();
