@@ -6,7 +6,8 @@ export function showToast(message: string, type: ToastType = 'info', duration = 
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.setAttribute('role', 'alert');
+  toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   toast.textContent = message;
   container.appendChild(toast);
 

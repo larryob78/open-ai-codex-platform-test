@@ -3,7 +3,11 @@ import { escapeHtml } from '../utils/escapeHtml';
 let currentModal: HTMLElement | null = null;
 let overlayListener: ((e: MouseEvent) => void) | null = null;
 let escapeListener: ((e: KeyboardEvent) => void) | null = null;
+let trapListener: ((e: KeyboardEvent) => void) | null = null;
 let previousFocus: HTMLElement | null = null;
+
+const FOCUSABLE =
+  'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]), a[href]';
 
 export function openModal(title: string, bodyHtml: string, footerHtml = ''): HTMLElement {
   closeModal();
@@ -42,10 +46,25 @@ export function openModal(title: string, bodyHtml: string, footerHtml = ''): HTM
   };
   document.addEventListener('keydown', escapeListener);
 
+  /* Focus trap: cycle Tab within the modal */
+  trapListener = (e: KeyboardEvent) => {
+    if (e.key !== 'Tab' || !currentModal) return;
+    const focusables = Array.from(currentModal.querySelectorAll<HTMLElement>(FOCUSABLE));
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', trapListener);
+
   /* Focus first focusable element inside modal */
-  const focusable = modal.querySelector<HTMLElement>(
-    'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-  );
+  const focusable = modal.querySelector<HTMLElement>(FOCUSABLE);
   if (focusable) {
     requestAnimationFrame(() => focusable.focus());
   }
@@ -66,6 +85,10 @@ export function closeModal(): void {
   if (escapeListener) {
     document.removeEventListener('keydown', escapeListener);
     escapeListener = null;
+  }
+  if (trapListener) {
+    document.removeEventListener('keydown', trapListener);
+    trapListener = null;
   }
   const sidebar = document.getElementById('sidebar');
   if (!sidebar?.classList.contains('open')) {

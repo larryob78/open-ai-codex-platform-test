@@ -3,6 +3,7 @@ import { renderNav, renderTopBar, initNav } from './components/nav';
 import { registerRoute, initRouter } from './router';
 import { showToast } from './components/toast';
 import { logger } from './utils/logger';
+import { checkAndShowOnboarding } from './components/onboarding';
 
 /* ── Lazy-loaded page modules ── */
 registerRoute('/dashboard', () => import('./pages/dashboard').then((m) => m.default));
@@ -40,13 +41,14 @@ function bootstrap(): void {
       ${renderNav()}
       <div class="main-content">
         ${renderTopBar()}
-        <div id="app-content"></div>
+        <main id="app-content"></main>
       </div>
     </div>
   `;
 
   initNav();
   initRouter();
+  checkAndShowOnboarding();
 }
 
 if (document.readyState === 'loading') {

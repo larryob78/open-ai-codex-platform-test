@@ -63,7 +63,7 @@ const NAV_ITEMS = [
 
 export function renderNav(): string {
   return `
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar" id="sidebar" aria-label="Main navigation">
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <span class="brand-icon">
