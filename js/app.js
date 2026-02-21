@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initSystemsPage();
   initExportPage();
   initDocumentationPage();
+  initInsightsPage();
 });
 
 /* ============================================================
@@ -506,6 +507,7 @@ function performSearch(query) {
   // Search pages
   var pages = [
     { name: 'Dashboard', detail: 'Compliance overview and statistics', url: getPageUrl('index.html') },
+    { name: 'Insights Dashboard', detail: 'Compliance analytics, gap analysis and recommendations', url: getPageUrl('pages/insights.html') },
     { name: 'Compliance Assessment', detail: 'Step-by-step assessment wizard', url: getPageUrl('pages/assessment.html') },
     { name: 'Risk Classification', detail: 'EU AI Act risk tiers reference', url: getPageUrl('pages/risk.html') },
     { name: 'AI Test 1 Report', detail: 'Automated compliance test results', url: getPageUrl('pages/ai-test-1.html') },
@@ -1267,6 +1269,175 @@ function initDocumentationPage() {
       item.style.display = (q === '' || text.indexOf(q) !== -1) ? '' : 'none';
     });
   });
+}
+
+/* ============================================================
+   Insights Dashboard (pages/insights.html)
+   ============================================================ */
+function initInsightsPage() {
+  var statsContainer = document.getElementById('insightsStats');
+  if (!statsContainer || typeof AIComplyData === 'undefined') return;
+
+  renderInsightsStats();
+  renderRiskDistribution();
+  renderComplianceByCategory();
+  renderHeatmap();
+  renderGapAnalysis();
+  renderRecommendations();
+}
+
+function renderInsightsStats() {
+  var container = document.getElementById('insightsStats');
+  if (!container) return;
+  var stats = AIComplyData.getStats();
+  var scores = AIComplyData.getComplianceScores();
+  var systems = AIComplyData.getSystems();
+  var compliant = systems.filter(function (s) { return s.status === 'compliant'; }).length;
+  var nonCompliant = systems.filter(function (s) { return s.status === 'non-compliant'; }).length;
+
+  var cards = [
+    { label: 'Avg Compliance', value: scores.overall + '%', icon: 'primary', change: scores.overall >= 70 ? 'On track' : 'Needs work', up: scores.overall >= 70,
+      svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>' },
+    { label: 'Compliant Systems', value: compliant + ' / ' + stats.totalSystems, icon: 'success', change: compliant + ' fully compliant', up: true,
+      svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' },
+    { label: 'Non-Compliant', value: nonCompliant, icon: 'danger', change: nonCompliant > 0 ? 'Action required' : 'All clear', up: nonCompliant === 0,
+      svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' },
+    { label: 'Weakest Category', value: AIComplyData.getWeakestCategory().name, icon: 'warning', change: AIComplyData.getWeakestCategory().score + '% avg', up: false,
+      svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' }
+  ];
+
+  container.innerHTML = cards.map(function (c) {
+    return '<div class="stat-card"><div class="stat-icon ' + c.icon + '">' + c.svg + '</div>' +
+      '<div class="stat-content"><span class="text-xs" style="font-weight:500;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-gray-500);">' + escapeHTML(c.label) + '</span>' +
+      '<div class="stat-value">' + escapeHTML(c.value) + '</div>' +
+      '<span class="stat-change ' + (c.up ? 'up' : 'down') + '">' + escapeHTML(c.change) + '</span></div></div>';
+  }).join('');
+}
+
+function renderRiskDistribution() {
+  var container = document.getElementById('riskDistribution');
+  if (!container) return;
+  var systems = AIComplyData.getSystems();
+  var total = systems.length;
+  var groups = { high: 0, limited: 0, minimal: 0 };
+  systems.forEach(function (s) { if (groups.hasOwnProperty(s.riskLevel)) groups[s.riskLevel]++; });
+
+  var bars = [
+    { key: 'high', label: 'High Risk', color: 'var(--risk-high)', bg: '#fff4e6' },
+    { key: 'limited', label: 'Limited Risk', color: 'var(--risk-limited)', bg: '#fff9db' },
+    { key: 'minimal', label: 'Minimal Risk', color: 'var(--risk-minimal)', bg: 'var(--color-success-light)' }
+  ];
+
+  container.innerHTML = '<div style="display:flex;flex-direction:column;gap:var(--space-5);">' +
+    bars.map(function (b) {
+      var count = groups[b.key];
+      var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      return '<div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">' +
+        '<span class="text-sm" style="font-weight:500;">' + b.label + '</span>' +
+        '<span class="text-sm" style="font-weight:600;">' + count + ' system' + (count !== 1 ? 's' : '') + ' (' + pct + '%)</span></div>' +
+        '<div class="progress-bar" style="height:12px;"><div style="height:100%;border-radius:var(--radius-full);background:' + b.color + ';width:' + pct + '%;transition:width 0.5s ease;"></div></div></div>';
+    }).join('') + '</div>' +
+    '<div style="margin-top:var(--space-6);padding:var(--space-4);background:var(--color-gray-50);border-radius:var(--radius-md);border:1px solid var(--color-gray-200);">' +
+    '<div class="text-xs text-muted" style="font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:var(--space-2);">Total Registered</div>' +
+    '<div style="font-size:var(--text-3xl);font-weight:700;color:var(--color-gray-900);">' + total + '</div>' +
+    '<div class="text-xs text-muted">AI systems in registry</div></div>';
+}
+
+function renderComplianceByCategory() {
+  var container = document.getElementById('complianceByCategory');
+  if (!container) return;
+  var scores = AIComplyData.getComplianceScores();
+  var categories = [
+    { label: 'Risk Management', value: scores.riskManagement, article: 'Art. 9' },
+    { label: 'Data Governance', value: scores.dataGovernance, article: 'Art. 10' },
+    { label: 'Technical Docs', value: scores.technicalDocs, article: 'Art. 11-12' },
+    { label: 'Transparency', value: scores.transparency, article: 'Art. 13' },
+    { label: 'Human Oversight', value: scores.humanOversight, article: 'Art. 14' }
+  ];
+
+  // Sort worst to best
+  categories.sort(function (a, b) { return a.value - b.value; });
+
+  container.innerHTML = '<div style="display:flex;flex-direction:column;gap:var(--space-4);">' +
+    categories.map(function (c) {
+      var color = AIComplyData.complianceColor(c.value);
+      var barColor = { green: 'var(--color-success)', blue: 'var(--color-primary-500)', orange: 'var(--color-warning)', red: 'var(--color-danger)' }[color];
+      return '<div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">' +
+        '<div><span class="text-sm" style="font-weight:500;">' + escapeHTML(c.label) + '</span>' +
+        '<span class="text-xs text-muted" style="margin-left:var(--space-2);">' + c.article + '</span></div>' +
+        '<span class="text-sm" style="font-weight:700;color:' + barColor + ';">' + c.value + '%</span></div>' +
+        '<div class="progress-bar" style="height:10px;"><div class="progress-fill ' + color + '" style="width:' + c.value + '%;"></div></div></div>';
+    }).join('') + '</div>';
+}
+
+function renderHeatmap() {
+  var tbody = document.getElementById('heatmapBody');
+  var countBadge = document.getElementById('heatmapCount');
+  if (!tbody) return;
+  var systems = AIComplyData.getSystems();
+  if (countBadge) countBadge.textContent = systems.length + ' system' + (systems.length !== 1 ? 's' : '');
+
+  tbody.innerHTML = systems.map(function (s) {
+    var scores = s.scores || {};
+    var vals = [scores.riskManagement || 0, scores.dataGovernance || 0, scores.transparency || 0, scores.humanOversight || 0, scores.technicalDocs || 0];
+    var overall = s.compliance;
+
+    return '<tr>' +
+      '<td><strong>' + escapeHTML(s.name) + '</strong><div class="text-xs text-muted">' + escapeHTML(AIComplyData.riskLevelLabel(s.riskLevel)) + '</div></td>' +
+      vals.map(function (v) {
+        return '<td><div class="insight-heatmap-cell" style="background:' + heatmapColor(v) + ';color:' + (v >= 60 ? '#1b7c34' : v >= 40 ? '#945200' : '#b91c1c') + ';">' + v + '%</div></td>';
+      }).join('') +
+      '<td><div class="insight-heatmap-cell" style="background:' + heatmapColor(overall) + ';color:' + (overall >= 60 ? '#1b7c34' : overall >= 40 ? '#945200' : '#b91c1c') + ';font-weight:700;">' + overall + '%</div></td></tr>';
+  }).join('');
+}
+
+function heatmapColor(value) {
+  if (value >= 90) return '#d3f9d8';
+  if (value >= 70) return '#b2f2bb';
+  if (value >= 50) return '#fff3bf';
+  if (value >= 30) return '#ffe066';
+  return '#ffc9c9';
+}
+
+function renderGapAnalysis() {
+  var container = document.getElementById('gapAnalysis');
+  if (!container) return;
+  var gaps = AIComplyData.getComplianceGaps();
+
+  if (gaps.length === 0) {
+    container.innerHTML = '<div class="alert alert-success"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><strong>All Clear</strong> No critical compliance gaps detected. All systems are above threshold.</div></div>';
+    return;
+  }
+
+  container.innerHTML = gaps.slice(0, 6).map(function (g, i) {
+    var severity = g.score < 30 ? 'danger' : g.score < 60 ? 'warning' : 'info';
+    var borderColor = { danger: 'var(--color-danger)', warning: 'var(--color-warning)', info: 'var(--color-info)' }[severity];
+    return '<div style="padding:var(--space-3) var(--space-4);border-left:4px solid ' + borderColor + ';border-radius:var(--radius-md);background:var(--color-gray-50);margin-bottom:var(--space-3);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+      '<div><strong class="text-sm">' + escapeHTML(g.systemName) + '</strong>' +
+      '<div class="text-xs text-muted">' + escapeHTML(g.category) + '</div></div>' +
+      '<span class="badge badge-' + severity + '">' + g.score + '%</span></div></div>';
+  }).join('');
+}
+
+function renderRecommendations() {
+  var container = document.getElementById('recommendations');
+  if (!container) return;
+  var recs = AIComplyData.getInsightRecommendations();
+
+  container.innerHTML = recs.map(function (r, i) {
+    var icons = {
+      critical: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      warning: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      suggestion: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+    var colors = { critical: 'danger', warning: 'warning', suggestion: 'info' };
+    return '<div class="alert alert-' + colors[r.priority] + '" style="margin-bottom:var(--space-3);">' +
+      (icons[r.priority] || icons.suggestion) +
+      '<div><strong>' + escapeHTML(r.title) + '</strong>' + escapeHTML(r.description) + '</div></div>';
+  }).join('');
 }
 
 /* ============================================================

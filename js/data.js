@@ -390,6 +390,106 @@ var AIComplyData = (function () {
       }[domain] || domain;
     },
 
+    /* --- Insights helpers --- */
+    getWeakestCategory: function () {
+      var scores = this.getComplianceScores();
+      var cats = [
+        { name: 'Human Oversight', score: scores.humanOversight },
+        { name: 'Transparency', score: scores.transparency },
+        { name: 'Data Governance', score: scores.dataGovernance },
+        { name: 'Technical Docs', score: scores.technicalDocs },
+        { name: 'Risk Management', score: scores.riskManagement }
+      ];
+      cats.sort(function (a, b) { return a.score - b.score; });
+      return cats[0];
+    },
+
+    getComplianceGaps: function () {
+      var systems = this.getSystems();
+      var gaps = [];
+      var categoryLabels = {
+        riskManagement: 'Risk Management',
+        dataGovernance: 'Data Governance',
+        transparency: 'Transparency',
+        humanOversight: 'Human Oversight',
+        technicalDocs: 'Technical Documentation'
+      };
+      systems.forEach(function (s) {
+        if (!s.scores) return;
+        Object.keys(categoryLabels).forEach(function (key) {
+          var score = s.scores[key] || 0;
+          if (score < 70) {
+            gaps.push({ systemName: s.name, category: categoryLabels[key], score: score, systemId: s.id });
+          }
+        });
+      });
+      gaps.sort(function (a, b) { return a.score - b.score; });
+      return gaps;
+    },
+
+    getInsightRecommendations: function () {
+      var systems = this.getSystems();
+      var scores = this.getComplianceScores();
+      var recs = [];
+
+      // Check for non-compliant systems
+      var nonCompliant = systems.filter(function (s) { return s.status === 'non-compliant'; });
+      if (nonCompliant.length > 0) {
+        recs.push({
+          priority: 'critical',
+          title: 'Address Non-Compliant Systems',
+          description: ' ' + nonCompliant.map(function (s) { return s.name; }).join(', ') + ' require immediate remediation before the Aug 2026 deadline.'
+        });
+      }
+
+      // Check for weak human oversight
+      if (scores.humanOversight < 60) {
+        recs.push({
+          priority: 'critical',
+          title: 'Strengthen Human Oversight',
+          description: ' Art. 14 compliance is at ' + scores.humanOversight + '%. Implement human-in-the-loop controls for all high-risk systems.'
+        });
+      }
+
+      // Check for weak transparency
+      if (scores.transparency < 70) {
+        recs.push({
+          priority: 'warning',
+          title: 'Improve Transparency Documentation',
+          description: ' Art. 13 compliance is at ' + scores.transparency + '%. Ensure all AI systems have clear user-facing documentation about their operation.'
+        });
+      }
+
+      // High risk systems below 80%
+      var weakHighRisk = systems.filter(function (s) { return s.riskLevel === 'high' && s.compliance < 80; });
+      if (weakHighRisk.length > 0) {
+        recs.push({
+          priority: 'warning',
+          title: 'Prioritise High-Risk System Compliance',
+          description: ' ' + weakHighRisk.length + ' high-risk system' + (weakHighRisk.length > 1 ? 's are' : ' is') + ' below 80% compliance. These face the strictest regulatory requirements.'
+        });
+      }
+
+      // General suggestion
+      if (scores.overall < 90) {
+        recs.push({
+          priority: 'suggestion',
+          title: 'Schedule Regular Compliance Reviews',
+          description: ' Set up quarterly reviews for all registered systems to track progress and catch regressions early.'
+        });
+      }
+
+      if (recs.length === 0) {
+        recs.push({
+          priority: 'suggestion',
+          title: 'Maintain Current Standards',
+          description: ' Your compliance posture looks strong. Continue regular monitoring and documentation updates.'
+        });
+      }
+
+      return recs;
+    },
+
     /* --- Reset --- */
     resetAll: function () {
       Object.keys(KEYS).forEach(function (k) { localStorage.removeItem(KEYS[k]); });
